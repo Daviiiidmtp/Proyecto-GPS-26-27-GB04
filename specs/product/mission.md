@@ -1,5 +1,3 @@
-
-
 # Misión del Producto
 
 ## Idea del producto
