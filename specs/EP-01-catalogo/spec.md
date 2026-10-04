@@ -46,5 +46,5 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 - **Predecessors:** US-01
 
 #### Acceptance criteria
-**US-03-AC-01:** Tiene que haber una opción que permita elegir qué categoría de productos quieres ver.
-**US-03-AC-02:** Cuando seleccionas una categoría, la web me debe mostrar los productos de esa categoria.
+- **US-03-AC-01:** Tiene que haber una opción que permita elegir qué categoría de productos quieres ver.
+- **US-03-AC-02:** Cuando seleccionas una categoría, la web me debe mostrar los productos de esa categoria.
