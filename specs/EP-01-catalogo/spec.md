@@ -8,7 +8,7 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 
 ## Stories
 
-### 1 .US-01 Ver catálogo general
+### 1. US-01 Ver catálogo general
 > Como usuario, quiero ver los productos disponibles para saber qué vende la tienda.
 
 - **Priority:** Must
