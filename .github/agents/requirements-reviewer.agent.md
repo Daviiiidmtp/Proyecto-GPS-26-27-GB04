@@ -16,7 +16,7 @@ verifiability and refinement needs. Produce evidence, questions and recommendati
 The human team remains responsible for requirements, estimates and all decisions.
 
 ## 2 Project configuration
-- Authoritative governance and principles: `constitution.md`.
+- Authoritative governance and principles: `specify/memory/constitution.md`.
 - Product mission and stakeholders: `specs/product/mission.md`.
 - Goals, scope, exclusions, assumptions and constraints: `specs/product/goals.md`.
 - Shared Definition of Ready: `docs/quality/definition-of-ready.md`.
