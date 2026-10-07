@@ -1,6 +1,6 @@
 # EP-03 Gestión de Foro
 
-- **Goals:** G-01
+- **Goals:** G-03
 - **Baseline:** Versión Inicial
 - **Boundary:** Con una funcionalidad básica de texto, sin subir fotos ni archivos en los mensajes.
 
@@ -26,7 +26,7 @@ Que los usuarios tengan un espacio dentro de la web para charlar, debatir sobre 
 
 - **Priority:** Should
 - **Estimate:** 1.5 h-p
-- **Predecessors:** US-07
+- **Predecessors:** US-07, US-09
 
 #### Acceptance criteria
 - **US-08-AC-01:** Al entrar en cualquier hilo del foro, aparece una caja de texto abajo del todo para poder escribir y responder.
