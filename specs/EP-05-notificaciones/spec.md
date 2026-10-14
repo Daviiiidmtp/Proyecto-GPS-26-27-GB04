@@ -14,7 +14,7 @@ Que los usuarios se enteren rápido cuando la tienda publique un nuevo torneo o 
 
 - **Priority:** Could
 - **Estimate:** 1.5 h-p
-- **Predecessors:** US-04
+- **Predecessors:** US-04, US-06
 
 #### Acceptance criteria
 - **US-11-AC-01:** La web tiene que tener un icono de campana arriba que muestre un aviso visual cuando hay algo nuevo.

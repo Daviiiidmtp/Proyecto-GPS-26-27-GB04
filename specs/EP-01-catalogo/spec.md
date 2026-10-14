@@ -54,3 +54,28 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 - **US-03-AC-01:** Tiene que haber una opción que permita elegir qué categoría de productos quieres ver.
 - **US-03-AC-02:** Cuando seleccionas una categoría, la web me debe mostrar los productos de esa categoria.
 - **US-03-AC-03:** Si el usuario selecciona una categoría que actualmente no tiene ningún artículo a la venta, se muestra el mensaje: "Actualmente no hay productos en esta categoría".
+
+### 4. US-16 Añadir productos a la cesta
+> Como usuario quiero añadir a una cesta los productos que tengo intención de comprar para no comprarlos de forma individual.
+
+- **Priority:** should
+- **Estimate:** 1 h-p
+- **Predecessors:** US-01
+
+#### Acceptance criteria
+- **US-16-AC-01:** Permite añadir y quitar productos.
+- **US-16-AC-02:** Muestra un listado de todos los productos junto con su precio individual y conjunto.
+- **US-16-AC-03:** Permite la compra en conjunto desde la cesta
+
+### 5. US-17 Compra
+> Como usuario quiero poder comprar los productos con el método de pago que quiera entre los diferentes disponibles.
+
+- **Priority:** Must
+- **Estimate:** 1.5 h-p
+- **Predecessors:** US-01, US-13
+
+#### Acceptance criteria
+- **US-17-AC-01:** Permite la elección de método de pago.
+- **US-17-AC-02:** Muestra un resumen del pedido.
+- **US-17-AC-03:** Muestra un mensaje de confirmación del pedido si se ha realizado correctamente o de error en caso contrario.
+- **US-17-AC-04:** Modifica el stock de la tienda. 
