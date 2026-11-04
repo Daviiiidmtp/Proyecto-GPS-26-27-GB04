@@ -1,7 +1,7 @@
 # EP-06 Gestión de Inventario
 
 - **Goals:** G-01, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Gestión interna de productos y cantidades para la demostración; solo se usan datos y precios ficticios.
 
 ## Epic outcome
@@ -18,10 +18,10 @@ Que los Administradores puedan publicar juegos y cartas y mantener actualizadas 
 > Como administrador, quiero crear la ficha de un nuevo producto para mostrarlo en tienda.
 
 - **Priority:** Must — es la fuente de productos para G-01 y hace posible consultar y comprar el catálogo de demostración.
-- **Estimate:** 2 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Low
 - **Predecessors:** Ninguna
-- **Initial plan:** Sprint 2
+- **Initial plan:** IT-03 (R2)
 
 #### Acceptance criteria
 - **US-12-AC-01:** Un Administrador autorizado dispone de un formulario para crear la ficha del producto.
@@ -42,9 +42,10 @@ Que los Administradores puedan publicar juegos y cartas y mantener actualizadas 
 > Como administrador, quiero actualizar las unidades disponibles de un artículo.
 
 - **Priority:** Must — mantiene fiable la disponibilidad de G-01 y evita ofrecer una cantidad que ya no existe.
-- **Estimate:** 1 h-p
+- **Estimate:** 5 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-12
+- **Initial plan:** IT-04 (R2)
 
 #### Acceptance criteria
 - **US-13-AC-01:** Un Administrador autorizado puede aumentar o reducir el stock de un producto existente mediante una cantidad entera no negativa.

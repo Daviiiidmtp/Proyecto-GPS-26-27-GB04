@@ -1,7 +1,7 @@
 # EP-07 Soporte y contacto
 
 - **Goals:** G-01, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Formulario de contacto y FAQs de demostración con datos ficticios. No se envían correos electrónicos reales ni se recopilan datos personales reales.
 
 ## Epic outcome
@@ -17,9 +17,10 @@ Que los clientes puedan consultar respuestas a dudas habituales o dejar una inci
 > Como usuario, quiero rellenar un formulario para enviar incidencias a la tienda.
 
 - **Priority:** Should — ofrece una vía de soporte, complementaria a la consulta autónoma de las FAQs y al objetivo de la tienda.
-- **Estimate:** 1 h-p
+- **Estimate:** 5 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** Ninguna
+- **Initial plan:** IT-06 (R3)
 
 #### Acceptance criteria
 - **US-14-AC-01:** La página de Contacto es accesible desde el pie de página.
@@ -39,9 +40,10 @@ Que los clientes puedan consultar respuestas a dudas habituales o dejar una inci
 > Como usuario, quiero leer una sección de preguntas frecuentes para resolver dudas rápidas.
 
 - **Priority:** Should — permite resolver consultas comunes sin contacto directo, pero es complementaria al catálogo y a la inscripción en eventos.
-- **Estimate:** 2 h-p
+- **Estimate:** 3 h-p
 - **Uncertainty:** Low
 - **Predecessors:** Ninguna
+- **Initial plan:** IT-01 (R1)
 
 #### Acceptance criteria
 - **US-15-AC-01:** La página de Preguntas Frecuentes muestra una lista de preguntas y sus respuestas.

@@ -1,7 +1,7 @@
 # EP-04 Gestión de Usuarios
 
 - **Goals:** G-01, G-02, G-03, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Se usan cuentas y datos ficticios/sintéticos; no se recopilan datos personales ni bancarios reales. La verificación y las notificaciones de correo son simuladas.
 
 ## Epic outcome
@@ -21,10 +21,10 @@ Que el sistema gestione cuentas de clientes y distinga los permisos de Moderador
 > Como usuario invitado previamente, quiero activar una cuenta de cliente con email sintético y contraseña para participar en la web.
 
 - **Priority:** Must — autenticación y verificación son necesarias para participar en eventos y foros y hacen compatible el alta con E-03.
-- **Estimate:** 2 h-p
+- **Estimate:** 13 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** Ninguna
-- **Initial plan:** Sprint 1
+- **Initial plan:** IT-02 (R1)
 
 #### Acceptance criteria
 - **US-09-AC-01:** Solo se puede iniciar el alta con una invitación de un solo uso autorizada y entregada por un Administrador; la invitación se aprovisiona fuera del registro público y una visita sin invitación no crea una cuenta.
@@ -44,9 +44,10 @@ Que el sistema gestione cuentas de clientes y distinga los permisos de Moderador
 > Como administrador, quiero retirar mensajes que incumplan las normas o bloquear cuentas para proteger a la comunidad.
 
 - **Priority:** Must — es el control necesario para que la participación de la comunidad pueda moderarse con los roles definidos.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-07, US-08, US-09
+- **Initial plan:** IT-06 (R3)
 
 #### Acceptance criteria
 - **US-10-AC-01:** El Moderador y el Administrador pueden retirar un mensaje; la acción requiere confirmación, el mensaje deja de ser visible para todos y se comunica el resultado.

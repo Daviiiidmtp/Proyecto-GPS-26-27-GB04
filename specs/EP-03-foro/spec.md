@@ -1,7 +1,7 @@
 # EP-03 Gestión de Foro
 
 - **Goals:** G-03, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Foro de texto básico; no se suben fotos ni archivos. Leer temas y respuestas es público; participar requiere una cuenta verificada y activa.
 
 ## Epic outcome
@@ -20,9 +20,10 @@ Que los usuarios puedan comunicarse y debatir sobre los juegos en un espacio com
 > Como usuario con cuenta verificada, quiero crear un hilo de discusión para interactuar con la comunidad.
 
 - **Priority:** Should — la conversación inicia la participación comunitaria de G-03, después de habilitar las cuentas.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-09
+- **Initial plan:** IT-04 (R2)
 
 #### Acceptance criteria
 - **US-07-AC-01:** Los visitantes pueden consultar la lista pública de temas; solo una cuenta autenticada, verificada y no bloqueada ve y puede usar "Nuevo tema".
@@ -42,9 +43,10 @@ Que los usuarios puedan comunicarse y debatir sobre los juegos en un espacio com
 > Como usuario con cuenta verificada, quiero responder en hilos existentes para participar en debates.
 
 - **Priority:** Should — permite conversaciones de G-03, una vez que existen temas y autenticación.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 5 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-07, US-09
+- **Initial plan:** IT-05 (R3)
 
 #### Acceptance criteria
 - **US-08-AC-01:** Las respuestas de un hilo son visibles públicamente; solo una cuenta autenticada, verificada y no bloqueada puede responder.

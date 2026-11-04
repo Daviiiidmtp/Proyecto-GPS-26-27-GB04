@@ -1,7 +1,7 @@
 # EP-05 Sistema de Notificaciones
 
 - **Goals:** G-02, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Alertas internas de la web sobre eventos; no se envían correos electrónicos reales.
 
 ## Epic outcome
@@ -17,9 +17,10 @@ Que los usuarios se enteren cuando la tienda publique un torneo o evento y pueda
 > Como usuario con cuenta activa, quiero recibir alertas internas cuando se publique un nuevo evento.
 
 - **Priority:** Could — informa sobre novedades y facilita G-02, pero consultar el calendario e inscribirse no dependen de las alertas.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-04, US-06, US-09
+- **Initial plan:** IT-06 (R3)
 
 #### Acceptance criteria
 - **US-11-AC-01:** Al publicarse un evento, cada cuenta Cliente activa recibe una notificación interna no leída asociada a ese evento; no se crean duplicados para la misma publicación.

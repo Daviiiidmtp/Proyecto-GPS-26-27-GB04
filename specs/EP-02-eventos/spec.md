@@ -1,7 +1,7 @@
 # EP-02 Gestión de Eventos
 
 - **Goals:** G-02, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Gestión de plazas locales para eventos ficticios. La cancelación de eventos queda fuera de esta baseline.
 
 ## Epic outcome
@@ -18,10 +18,10 @@ Que los jugadores puedan consultar los próximos torneos de la tienda y reservar
 > Como usuario, quiero ver un calendario con los próximos torneos y actividades.
 
 - **Priority:** Must — es la capacidad de consulta central de G-02 y antecede a la inscripción.
-- **Estimate:** 2 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Low
 - **Predecessors:** Ninguna
-- **Initial plan:** Sprint 1
+- **Initial plan:** IT-02 (R1)
 
 #### Acceptance criteria
 - **US-04-AC-01:** Los eventos publicados con fecha futura se muestran por fecha y hora, empezando por el más próximo.
@@ -41,10 +41,10 @@ Que los jugadores puedan consultar los próximos torneos de la tienda y reservar
 > Como usuario con cuenta verificada, quiero apuntarme a un evento para asegurar mi plaza.
 
 - **Priority:** Must — completa el objetivo G-02 cuando un evento tiene aforo disponible y depende de la consulta y autenticación.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-04, US-09
-- **Initial plan:** Sprint 1
+- **Initial plan:** IT-03 (R2)
 
 #### Acceptance criteria
 - **US-05-AC-01:** Solo una persona con sesión autenticada, cuenta verificada y no bloqueada puede inscribirse; si no cumple una condición, recibe un mensaje que indica el motivo y cómo continuar.
@@ -65,9 +65,10 @@ Que los jugadores puedan consultar los próximos torneos de la tienda y reservar
 > Como administrador, quiero crear la ficha de un nuevo evento.
 
 - **Priority:** Must — publicar eventos es necesario para ofrecer el calendario y las inscripciones de G-02.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** Ninguna
+- **Initial plan:** IT-05 (R3)
 
 #### Acceptance criteria
 - **US-06-AC-01:** Un administrador puede introducir título, fecha y hora futuras y una capacidad entera positiva.

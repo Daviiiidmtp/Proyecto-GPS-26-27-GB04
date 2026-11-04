@@ -1,7 +1,7 @@
 # EP-01 Gestión del Catálogo
 
 - **Goals:** G-01, G-04
-- **Baseline:** Versión Inicial
+- **Baseline:** v2 (re-entrega P1)
 - **Boundary:** Uso exclusivo de productos y datos ficticios. La cesta y el checkout son una simulación: no se realizan cobros ni se solicitan, transmiten o almacenan datos financieros reales.
 
 ## Epic outcome
@@ -17,10 +17,10 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 > Como usuario, quiero ver los productos disponibles para saber qué vende la tienda.
 
 - **Priority:** Must — es la capacidad central de G-01 y alimenta búsqueda, selección y compra.
-- **Estimate:** 3 h-p
+- **Estimate:** 13 h-p
 - **Uncertainty:** Low
 - **Predecessors:** Ninguna
-- **Initial plan:** Sprint 1
+- **Initial plan:** IT-01 (R1)
 
 #### Acceptance criteria
 - **US-01-AC-01:** Al entrar en la página principal, se muestran primero los productos disponibles ordenados alfabéticamente por nombre.
@@ -39,9 +39,10 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 > Como usuario, quiero buscar productos por nombre para encontrarlos rápidamente.
 
 - **Priority:** Must — encontrar productos es parte del recorrido esencial de G-01 y depende del catálogo.
-- **Estimate:** 1 h-p
+- **Estimate:** 5 h-p
 - **Uncertainty:** Low
 - **Predecessors:** US-01
+- **Initial plan:** IT-03 (R2)
 
 #### Acceptance criteria
 - **US-02-AC-01:** El catálogo ofrece un campo identificable para buscar por nombre.
@@ -59,9 +60,10 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 > Como usuario, quiero filtrar productos por tipo para acotar la búsqueda.
 
 - **Priority:** Should — mejora la exploración, pero el catálogo y la búsqueda permiten consultar productos sin este refinamiento.
-- **Estimate:** 1 h-p
+- **Estimate:** 5 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-01
+- **Initial plan:** IT-03 (R2)
 
 #### Acceptance criteria
 - **US-03-AC-01:** El catálogo permite seleccionar una categoría existente.
@@ -79,9 +81,10 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 > Como usuario, quiero añadir a una cesta los productos que tengo intención de comprar para no comprarlos de forma individual.
 
 - **Priority:** Should — habilita la selección de varios artículos dentro del recorrido de compra de S-01, que sigue siendo simulado.
-- **Estimate:** 1 h-p
+- **Estimate:** 8 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-01
+- **Initial plan:** IT-04 (R2)
 
 #### Acceptance criteria
 - **US-16-AC-01:** Se pueden añadir productos disponibles a la cesta y quitar productos o unidades de ella.
@@ -99,9 +102,10 @@ Que cualquier persona que entre a la web pueda ver, buscar y encontrar fácilmen
 > Como usuario, quiero completar una compra simulada de los productos de mi cesta para ver el resultado de mi pedido.
 
 - **Priority:** Must — cubre el recorrido de compra simulado declarado en S-01; no autoriza transacciones monetarias reales.
-- **Estimate:** 1.5 h-p
+- **Estimate:** 13 h-p
 - **Uncertainty:** Medium
 - **Predecessors:** US-01, US-13, US-16
+- **Initial plan:** IT-05 (R3)
 
 #### Acceptance criteria
 - **US-17-AC-01:** El checkout permite seleccionar un método de pago de demostración, sin conectarse a un proveedor ni solicitar datos financieros reales.
