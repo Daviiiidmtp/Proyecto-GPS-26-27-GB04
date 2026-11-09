@@ -1,0 +1,49 @@
+/* Estilos comunes. Cada módulo puede añadir su propio archivo CSS. */
+:root {
+  --verde: #2f5d3a;
+  --verde-claro: #e7f0e4;
+  --marron: #6b4423;
+  --texto: #1f1f1f;
+  --fondo: #faf7f0;
+  --error: #a4161a;
+  --exito: #1b6e3a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+  line-height: 1.5;
+}
+
+/* Accesibilidad: enlace para saltar al contenido y foco visible */
+.saltar { position: absolute; left: -999px; }
+.saltar:focus { left: 1rem; top: 1rem; background: #fff; padding: .5rem; z-index: 10; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--marron);
+  outline-offset: 2px;
+}
+
+.cabecera {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 1rem 1.5rem; background: var(--verde); color: #fff;
+}
+.logo { color: #fff; font-weight: 700; font-size: 1.25rem; text-decoration: none; }
+.menu { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+.menu a { color: #fff; text-decoration: none; padding: .25rem 0; }
+.menu a[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px; font-weight: 700; }
+
+.contenido { max-width: 1100px; margin: 0 auto; padding: 1.5rem; min-height: 60vh; }
+.portada h1 { color: var(--verde); margin-bottom: .25rem; }
+.lema { color: var(--marron); font-size: 1.15rem; margin-top: 0; }
+
+/* Mensajes: el texto explica el estado, no solo el color */
+.aviso { padding: .75rem 1rem; border-radius: 6px; border-left: 6px solid; }
+.aviso-exito { background: #e3f4e8; border-color: var(--exito); }
+.aviso-error { background: #fbe4e4; border-color: var(--error); }
+.aviso-info  { background: var(--verde-claro); border-color: var(--verde); }
+
+.pie { text-align: center; font-size: .9rem; padding: 1rem; color: #555; }
