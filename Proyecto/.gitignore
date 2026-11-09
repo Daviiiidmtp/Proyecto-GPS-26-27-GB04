@@ -1,0 +1,22 @@
+# Entorno virtual de Python
+.venv/
+venv/
+
+# Archivos que genera Python al ejecutar
+__pycache__/
+*.pyc
+
+# Base de datos local (cada uno tiene la suya; se crea sola al arrancar)
+instance/
+*.sqlite
+*.db
+
+# Pruebas
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Configuración privada y editores
+.env
+.vscode/
+.idea/
