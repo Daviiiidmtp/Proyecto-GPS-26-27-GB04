@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Preguntas frecuentes · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/faqs.css') }}">
+  <h1>Preguntas frecuentes</h1>
+
+  {# Contenido fijo de demostración. Para añadir una pregunta, añade una pareja (pregunta, respuesta). #}
+  {% set faqs = faqs if faqs is defined else [
+    ("¿Cómo compro un producto?",
+     "Busca el producto en el Catálogo, añádelo a la cesta y completa la compra simulada. No se realiza ningún cobro real."),
+    ("¿Qué significa «Agotado»?",
+     "Que ahora mismo no quedan unidades. La ficha del producto se sigue mostrando para que sepas que lo vendemos."),
+    ("¿Cómo me apunto a un torneo o evento?",
+     "Entra en Eventos, elige uno de los próximos y pulsa «Inscribirme». Necesitas una cuenta activa."),
+    ("¿Necesito una cuenta para ver el catálogo?",
+     "No. Cualquier persona puede ver el catálogo, el calendario de eventos y estas preguntas frecuentes."),
+    ("¿Cómo creo una cuenta?",
+     "Desde Registro, con un correo de prueba y una contraseña. Todos los datos de la web son ficticios."),
+    ("¿Quién puede escribir en el foro?",
+     "Las personas con una cuenta activa pueden crear temas y responder en los existentes."),
+    ("¿Cómo contacto con la tienda?",
+     "Desde el formulario de contacto puedes enviarnos una incidencia y la tienda le hará seguimiento.")
+  ] %}
+
+  {% if faqs %}
+    <p>Pulsa una pregunta, o selecciónala con el tabulador y pulsa Intro, para ver su respuesta.</p>
+    <div class="faqs">
+      {% for pregunta, respuesta in faqs %}
+        <details class="faq">
+          <summary>{{ pregunta }}</summary>
+          <p>{{ respuesta }}</p>
+        </details>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="aviso aviso-info" role="status">No hay preguntas frecuentes disponibles en este momento.</p>
+  {% endif %}
+{% endblock %}

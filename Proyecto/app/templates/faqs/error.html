@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titulo %}Preguntas frecuentes · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <h1>Preguntas frecuentes</h1>
+  <p class="aviso aviso-error" role="alert">Error: no se han podido cargar las preguntas frecuentes.</p>
+  <p><a href="{{ url_for('faqs.ver_faqs') }}">Reintentar</a></p>
+{% endblock %}
