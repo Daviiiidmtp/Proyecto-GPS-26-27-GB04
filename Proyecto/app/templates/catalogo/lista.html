@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Catálogo · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+
+  {% if portada %}
+    <p class="bienvenida">Cartas coleccionables, juegos de mesa y de rol. Todos los productos y precios son ficticios.</p>
+  {% endif %}
+  <h1>Catálogo</h1>
+
+  {% if error %}
+    {# US-01-AC-04: no se muestra el estado vacío si la carga ha fallado #}
+    <p class="aviso aviso-error" role="alert">Error: no se ha podido cargar el catálogo.</p>
+    <p><a class="boton" href="{{ request.path }}">Volver a intentarlo</a></p>
+
+  {% elif not productos %}
+    {# US-01-AC-03 #}
+    <p class="aviso aviso-info" role="status">El catálogo está vacío actualmente.</p>
+
+  {% else %}
+    <p class="contador" role="status">{{ productos|length }} productos</p>
+    <ul class="productos">
+      {% for p in productos %}
+        <li class="producto{% if not p.disponible %} producto-agotado{% endif %}">
+          <img class="producto-imagen"
+               src="{{ p.imagen or url_for('static', filename='img/producto-por-defecto.svg') }}"
+               alt="{{ p.nombre }}" loading="lazy">
+          <h2 class="producto-nombre">{{ p.nombre }}</h2>
+          <p class="producto-precio">{{ '%.2f'|format(p.precio)|replace('.', ',') }} €</p>
+          {# El estado se indica con texto, no solo con color #}
+          <p class="producto-estado estado-{{ 'disponible' if p.disponible else 'agotado' }}">{{ p.estado }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
