@@ -1,0 +1,33 @@
+/* Estilos del calendario de eventos (US-04) */
+.nota { color: #555; }
+.filtros { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.filtros a {
+  padding: .35rem .9rem; border: 1px solid var(--verde); border-radius: 999px;
+  color: var(--verde); text-decoration: none;
+}
+.filtros a[aria-current="page"] { background: var(--verde); color: #fff; }
+.eventos { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
+.evento {
+  display: grid; grid-template-columns: 9rem 1fr auto; gap: 1rem; align-items: center;
+  background: #fff; border: 1px solid #d9d2c3; border-radius: 8px; padding: .9rem 1rem;
+}
+.evento-fecha { margin: 0; font-weight: 700; color: var(--verde); }
+.evento-fecha .hora { display: block; font-size: 1.3rem; }
+.evento-titulo { font-size: 1.05rem; margin: 0; }
+.evento-tipo { margin: .2rem 0 0; color: #555; font-size: .9rem; }
+.evento-plazas p { margin: 0; text-align: right; }
+.evento-estado { font-weight: 700; }
+.estado-libre { color: var(--exito); }
+.estado-completo { color: var(--error); }
+.estado-libre::before { content: "● "; }
+.estado-completo::before { content: "✕ "; }
+.evento-completo { opacity: .85; }
+.boton {
+  display: inline-block; padding: .5rem 1rem; border-radius: 6px;
+  background: var(--verde); color: #fff; text-decoration: none;
+}
+/* En móvil, cada evento ocupa una columna y no se pierde información */
+@media (max-width: 600px) {
+  .evento { grid-template-columns: 1fr; gap: .4rem; }
+  .evento-plazas p { text-align: left; }
+}

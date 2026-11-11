@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Eventos · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/eventos.css') }}">
+  <h1>Próximos eventos</h1>
+  <p class="nota">Torneos y actividades del local. Las horas son las de la tienda.</p>
+
+  <nav class="filtros" aria-label="Filtrar eventos por tipo">
+    <a href="{{ url_for('eventos.ver_eventos') }}" {% if not tipo %}aria-current="page"{% endif %}>Todos</a>
+    {% for clave, texto in tipos.items() %}
+      <a href="{{ url_for('eventos.ver_eventos', tipo=clave) }}" {% if tipo == clave %}aria-current="page"{% endif %}>{{ texto }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if error %}
+    {# US-04-AC-05: no se muestra la lista vacía si la carga ha fallado #}
+    <p class="aviso aviso-error" role="alert">Error: no se han podido cargar los eventos.</p>
+    <p><a class="boton" href="{{ request.full_path }}">Volver a intentarlo</a></p>
+
+  {% elif not eventos %}
+    {# US-04-AC-04 #}
+    <p class="aviso aviso-info" role="status">No hay eventos próximos</p>
+
+  {% else %}
+    <ul class="eventos">
+      {% for e in eventos %}
+        <li class="evento{% if e.completo %} evento-completo{% endif %}">
+          <p class="evento-fecha"><span class="dia">{{ e.fecha }}</span> <span class="hora">{{ e.hora }}</span></p>
+          <div class="evento-datos">
+            <h2 class="evento-titulo">{{ e.titulo }}</h2>
+            <p class="evento-tipo">{{ 'Torneo' if e.tipo == 'torneo' else 'Actividad' }}</p>
+          </div>
+          <div class="evento-plazas">
+            <p>{{ e.plazas_disponibles }} de {{ e.plazas_totales }} plazas libres</p>
+            {# El estado se indica con texto, no solo con color #}
+            <p class="evento-estado estado-{{ 'completo' if e.completo else 'libre' }}">{{ e.estado }}</p>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
