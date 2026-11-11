@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block titulo %}Confirma tu cuenta · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <h1>Revisa tu correo</h1>
+  <p class="aviso aviso-exito" role="status">Cuenta creada. Te hemos enviado un correo de confirmación a <strong>{{ email }}</strong>. Hasta que la confirmes no podrás iniciar sesión.</p>
+
+  <section class="correo" aria-label="Correo de confirmación simulado">
+    <p class="correo-aviso">Correo simulado: en esta demostración no se envía ningún correo real.</p>
+    <p><strong>Para:</strong> {{ email }}<br><strong>Asunto:</strong> Confirma tu cuenta en El Hogar del Hobbit</p>
+    <p>Pulsa el enlace para activar tu cuenta:</p>
+    <p><a class="boton" href="{{ enlace }}">Confirmar mi cuenta</a></p>
+  </section>
+{% endblock %}
