@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}El Hogar del Hobbit{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+  <header class="cabecera">
+    <a class="logo" href="/">El Hogar del Hobbit</a>
+    <nav aria-label="Menú principal">
+      <ul class="menu">
+        {% set menu = [
+          ('/', 'Inicio'),
+          ('/catalogo', 'Catálogo'),
+          ('/eventos', 'Eventos'),
+          ('/foro', 'Foro'),
+          ('/faqs', 'FAQs')
+        ] %}
+        {% if session.get('usuario_id') %}
+          {% set menu = menu + [('/logout', 'Cerrar sesión')] %}
+        {% else %}
+          {% set menu = menu + [('/registro', 'Registro'), ('/login', 'Iniciar sesión')] %}
+        {% endif %}
+        {% for ruta, texto in menu %}
+          {% if ruta == '/logout' %}
+            {# Muestra con qué cuenta se ha iniciado sesión #}
+            <li class="menu-usuario">Hola, {{ session.get('nombre_usuario') }}</li>
+          {% endif %}
+          <li><a href="{{ ruta }}" {% if request.path == ruta %}aria-current="page"{% endif %}>{{ texto }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </header>
+
+  <main id="contenido" class="contenido">
+    {# Mensajes de éxito, error o información (flash('texto', 'exito'|'error'|'info')) #}
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% for categoria, mensaje in mensajes %}
+        <p class="aviso aviso-{{ categoria }}" role="status">{{ mensaje }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    {% block contenido %}{% endblock %}
+  </main>
+
+  <footer class="pie">
+    <p>Proyecto académico GPS · Grupo GB04 · Todos los datos son ficticios.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <h1>Iniciar sesión</h1>
+  {% if error %}<p class="aviso aviso-error" role="alert">{{ error }}</p>{% endif %}
+  {% if session.get('usuario_id') %}
+    <p class="aviso aviso-info" role="status">Has iniciado sesión como {{ session.get('nombre_usuario') }}. <a href="{{ url_for('usuarios.logout') }}">Cerrar sesión</a></p>
+  {% endif %}
+  <form class="formulario" method="post" novalidate>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ email }}" required autocomplete="email">
+    <label for="contrasena">Contraseña</label>
+    <input id="contrasena" name="contrasena" type="password" required autocomplete="current-password">
+    <button type="submit">Entrar</button>
+  </form>
+  <p>¿No tienes cuenta? <a href="{{ url_for('usuarios.registro') }}">Regístrate con tu invitación</a></p>
+{% endblock %}

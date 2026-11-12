@@ -1,0 +1,29 @@
+/* Estilos del catálogo (US-01) */
+.bienvenida { color: var(--marron); font-size: 1.1rem; }
+.contador { color: #555; }
+.productos {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.producto {
+  background: #fff; border: 1px solid #d9d2c3; border-radius: 8px; padding: 1rem;
+  display: flex; flex-direction: column; gap: .35rem;
+}
+/* Las imágenes grandes o pequeñas no deforman la ficha */
+.producto-imagen {
+  width: 100%; aspect-ratio: 4 / 3; object-fit: contain;
+  background: var(--verde-claro); border-radius: 6px;
+}
+.producto-nombre { font-size: 1rem; margin: .25rem 0 0; }
+.producto-precio { font-weight: 700; font-size: 1.1rem; margin: 0; }
+.producto-estado { margin: 0; font-weight: 600; font-size: .9rem; }
+.estado-disponible { color: var(--exito); }
+.estado-agotado { color: var(--error); }
+.estado-disponible::before { content: "● "; }
+.estado-agotado::before { content: "✕ "; }
+.producto-agotado .producto-imagen { opacity: .6; }
+.boton {
+  display: inline-block; padding: .5rem 1rem; border-radius: 6px;
+  background: var(--verde); color: #fff; text-decoration: none;
+}
