@@ -69,8 +69,12 @@ def getProductosPorNombre(nombre):
 
 
 def getProductosPorTipo(tipo):
-    """Productos de una categoría. -> list. US-03"""
-    raise NotImplementedError("Pendiente: US-03 Filtrar por categoría")
+    """Productos disponibles de una categoría, ordenados por nombre. -> list. US-03
+
+    Solo devuelve los que tienen stock, como pide US-03-AC-02.
+    Lanza CatalogoNoDisponible si no se puede leer la base de datos.
+    """
+    return [producto for producto in getProductosDisponibles() if producto["tipo"] == tipo]
 
 
 def getProductosDisponibles():

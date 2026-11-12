@@ -8,14 +8,19 @@
   {% endif %}
   <h1>Catálogo</h1>
 
+  {# US-02: campo de búsqueda. US-03: selector de categoría. Si aún no existe la pieza, no se muestra. #}
+  {% include "catalogo/_buscador.html" ignore missing %}
+  {% include "catalogo/_categorias.html" ignore missing %}
+
   {% if error %}
     {# US-01-AC-04: no se muestra el estado vacío si la carga ha fallado #}
     <p class="aviso aviso-error" role="alert">Error: no se ha podido cargar el catálogo.</p>
-    <p><a class="boton" href="{{ request.path }}">Volver a intentarlo</a></p>
+    {# Se conserva la búsqueda o la categoría al reintentar #}
+    <p><a class="boton" href="{{ request.full_path }}">Volver a intentarlo</a></p>
 
   {% elif not productos %}
-    {# US-01-AC-03 #}
-    <p class="aviso aviso-info" role="status">El catálogo está vacío actualmente.</p>
+    {# US-01-AC-03. La búsqueda y el filtro pasan su propio mensaje #}
+    <p class="aviso aviso-info" role="status">{{ mensaje_vacio or 'El catálogo está vacío actualmente.' }}</p>
 
   {% else %}
     <p class="contador" role="status">{{ productos|length }} productos</p>
