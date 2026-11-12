@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}Registro · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <h1>Crear cuenta</h1>
+  <p>Para registrarte necesitas el <strong>código de invitación</strong> que te entrega la tienda. Usa datos de prueba: no introduzcas datos personales reales.</p>
+
+  {% if motivos %}
+    <div class="aviso aviso-error" role="alert">
+      <p><strong>No se ha creado la cuenta:</strong></p>
+      <ul>{% for motivo in motivos %}<li>{{ motivo }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="formulario" method="post" novalidate>
+    <label for="codigo_invitacion">Código de invitación</label>
+    <input id="codigo_invitacion" name="codigo_invitacion" value="{{ datos.codigo_invitacion or '' }}" required autocomplete="off">
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ datos.email or '' }}" required autocomplete="email">
+
+    <label for="nombre_usuario">Nombre de usuario</label>
+    <input id="nombre_usuario" name="nombre_usuario" value="{{ datos.nombre_usuario or '' }}" required autocomplete="username">
+
+    <label for="contrasena">Contraseña <span class="ayuda">(al menos 8 caracteres)</span></label>
+    <input id="contrasena" name="contrasena" type="password" required minlength="8" autocomplete="new-password">
+
+    <label for="contrasena2">Repite la contraseña</label>
+    <input id="contrasena2" name="contrasena2" type="password" required minlength="8" autocomplete="new-password">
+
+    <button type="submit">Crear cuenta</button>
+  </form>
+  <p>¿Ya tienes cuenta? <a href="{{ url_for('usuarios.login') }}">Inicia sesión</a></p>
+{% endblock %}
