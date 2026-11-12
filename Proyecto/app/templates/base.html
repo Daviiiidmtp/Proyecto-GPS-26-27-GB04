@@ -18,10 +18,18 @@
           ('/catalogo', 'Catálogo'),
           ('/eventos', 'Eventos'),
           ('/foro', 'Foro'),
-          ('/faqs', 'FAQs'),
-          ('/registro', 'Registro')
+          ('/faqs', 'FAQs')
         ] %}
+        {% if session.get('usuario_id') %}
+          {% set menu = menu + [('/logout', 'Cerrar sesión')] %}
+        {% else %}
+          {% set menu = menu + [('/registro', 'Registro'), ('/login', 'Iniciar sesión')] %}
+        {% endif %}
         {% for ruta, texto in menu %}
+          {% if ruta == '/logout' %}
+            {# Muestra con qué cuenta se ha iniciado sesión #}
+            <li class="menu-usuario">Hola, {{ session.get('nombre_usuario') }}</li>
+          {% endif %}
           <li><a href="{{ ruta }}" {% if request.path == ruta %}aria-current="page"{% endif %}>{{ texto }}</a></li>
         {% endfor %}
       </ul>

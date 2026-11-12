@@ -11,7 +11,7 @@ METODOS = {
                       "crearProducto", "cambiarStock"],
     gestor_evento: ["getEventosDisponibles", "apuntarmeEnEvento", "crearEvento"],
     gestor_foro: ["getTema", "crearTema", "anadirComentario", "eliminarMensaje"],
-    gestor_usuario: ["crearUsuario", "cambiarRol", "getRolUsuario", "banearUsuario"],
+    gestor_usuario: ["crearUsuario", "verificarCuenta", "iniciarSesion", "cambiarRol", "getRolUsuario", "banearUsuario"],
     gestor_soporte: ["reportarIncidencia"],
 }
 

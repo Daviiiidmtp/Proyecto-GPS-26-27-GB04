@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Verificación de cuenta · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <h1>Verificación de cuenta</h1>
+  {% if correcto %}
+    <p class="aviso aviso-exito" role="status">{{ mensaje }}</p>
+    <p><a class="boton" href="{{ url_for('usuarios.login') }}">Iniciar sesión</a></p>
+  {% else %}
+    <p class="aviso aviso-error" role="alert">{{ mensaje }}</p>
+    <p><a href="{{ url_for('usuarios.registro') }}">Volver al registro</a></p>
+  {% endif %}
+{% endblock %}
