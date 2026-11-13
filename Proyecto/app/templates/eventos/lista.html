@@ -22,6 +22,9 @@
     <p class="aviso aviso-info" role="status">No hay eventos próximos</p>
 
   {% else %}
+    {% if not session.get('usuario_id') %}
+      <p class="nota">Para inscribirte en un evento tienes que <a href="{{ url_for('usuarios.login') }}">iniciar sesión</a> con una cuenta verificada.</p>
+    {% endif %}
     <ul class="eventos">
       {% for e in eventos %}
         <li class="evento{% if e.completo %} evento-completo{% endif %}">
@@ -34,9 +37,29 @@
             <p>{{ e.plazas_disponibles }} de {{ e.plazas_totales }} plazas libres</p>
             {# El estado se indica con texto, no solo con color #}
             <p class="evento-estado estado-{{ 'completo' if e.completo else 'libre' }}">{{ e.estado }}</p>
+            {# US-05: botón de inscripción según el estado del evento #}
+            {% if e.id in inscritos %}
+              <p class="evento-inscrito">Inscrito</p>
+            {% elif not e.completo %}
+              <form class="form-inscripcion" method="post" action="{{ url_for('eventos.inscribirse', id_evento=e.id) }}">
+                <input type="hidden" name="tipo" value="{{ tipo or '' }}">
+                <button type="submit" class="boton boton-inscribirse" aria-label="Inscribirse en {{ e.titulo }}">Inscribirse</button>
+              </form>
+            {% endif %}
           </div>
         </li>
       {% endfor %}
     </ul>
   {% endif %}
+
+  <script>
+    // Mensaje de carga: mientras se envía la inscripción el botón se desactiva y no se puede pulsar dos veces
+    document.querySelectorAll(".form-inscripcion").forEach(function (form) {
+      form.addEventListener("submit", function () {
+        var boton = form.querySelector("button");
+        boton.disabled = true;
+        boton.textContent = "Inscribiendo…";
+      });
+    });
+  </script>
 {% endblock %}
