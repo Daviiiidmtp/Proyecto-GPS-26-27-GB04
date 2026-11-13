@@ -3,13 +3,28 @@
 Cada método lo implementa la historia indicada. Hasta entonces lanza
 NotImplementedError. Los métodos @Admin solo los puede usar un administrador.
 """
+import re
 import sqlite3
 
+from app.gestores import gestor_usuario
+from app.gestores.categorias import CATEGORIAS
 from app.repositories import productos_repo
 
 
 class CatalogoNoDisponible(Exception):
     """No se ha podido leer el catálogo. La interfaz muestra un error y permite reintentar."""
+
+
+class ProductoInvalido(Exception):
+    """Los datos del producto no son válidos. `errores` indica el campo y el motivo."""
+
+    def __init__(self, errores):
+        super().__init__("; ".join(errores.values()))
+        self.errores = errores
+
+
+class PermisoDenegado(Exception):
+    """Solo un administrador puede hacer esta operación."""
 
 
 def _a_producto(fila):
@@ -108,9 +123,78 @@ def getCesta(idUsuario):
 
 # ---------- @Admin ----------
 
-def crearProducto(producto):
-    """@Admin. Da de alta un producto. -> bool. US-12"""
-    raise NotImplementedError("Pendiente: US-12 Añadir producto")
+LONGITUD_MAXIMA_NOMBRE = 100
+PATRON_PRECIO = re.compile(r"^\d+([.,]\d{1,2})?$")
+PATRON_STOCK = re.compile(r"^\d+$")
+INICIOS_IMAGEN = ("http://", "https://", "/static/")
+
+
+def _validar_producto(producto):
+    """Comprueba cada campo y devuelve (errores, datos limpios). US-12-AC-02 y 03"""
+    errores = {}
+    nombre = (producto.get("nombre") or "").strip()
+    precio = (producto.get("precio") or "").strip()
+    tipo = (producto.get("tipo") or "").strip()
+    stock = (producto.get("stock") or "").strip()
+    imagen = (producto.get("imagen") or "").strip()
+
+    if not nombre:
+        errores["nombre"] = "El nombre es obligatorio."
+    elif len(nombre) > LONGITUD_MAXIMA_NOMBRE:
+        errores["nombre"] = f"El nombre no puede tener más de {LONGITUD_MAXIMA_NOMBRE} caracteres."
+    elif productos_repo.existe_nombre(nombre):
+        errores["nombre"] = "Ya existe un producto con ese nombre."
+
+    if not precio:
+        errores["precio"] = "El precio es obligatorio."
+    elif not PATRON_PRECIO.match(precio):
+        errores["precio"] = "El precio debe ser un número no negativo con hasta 2 decimales, por ejemplo 19,95."
+
+    if not tipo:
+        errores["tipo"] = "Elige una categoría."
+    elif tipo not in CATEGORIAS:
+        errores["tipo"] = "La categoría no existe."
+
+    if not stock:
+        errores["stock"] = "El stock es obligatorio."
+    elif not PATRON_STOCK.match(stock):
+        errores["stock"] = "El stock debe ser un número entero igual o mayor que 0."
+
+    if imagen and not imagen.startswith(INICIOS_IMAGEN):
+        errores["imagen"] = "La dirección de la foto debe empezar por http://, https:// o /static/."
+
+    datos = {
+        "nombre": nombre,
+        "tipo": tipo,
+        "precio": float(precio.replace(",", ".")) if "precio" not in errores else None,
+        "stock": int(stock) if "stock" not in errores else None,
+        "imagen": imagen or None,  # sin foto se usa la imagen por defecto (US-12-AC-05)
+    }
+    return errores, datos
+
+
+def crearProducto(producto, idUsuario):
+    """@Admin. Da de alta un producto publicado y devuelve su id. US-12
+
+    `producto` es un diccionario con nombre, precio, tipo, stock e imagen (opcional),
+    tal y como llegan del formulario. El id lo asigna la base de datos.
+    Lanza PermisoDenegado si el usuario no es administrador (US-12-AC-06),
+    ProductoInvalido con el campo y el motivo de cada error (US-12-AC-03)
+    y CatalogoNoDisponible si falla el guardado (US-12-AC-07).
+    En el diagrama devuelve bool; aquí devuelve el id para poder enlazar el producto.
+    """
+    try:
+        if idUsuario is None or gestor_usuario.getRolUsuario(idUsuario) != "admin":
+            raise PermisoDenegado("Solo un administrador puede añadir productos.")
+        errores, datos = _validar_producto(producto)
+        if errores:
+            raise ProductoInvalido(errores)
+        return productos_repo.crear(datos["nombre"], datos["tipo"], datos["precio"], datos["stock"], datos["imagen"])
+    except sqlite3.IntegrityError as error:
+        # Dos altas a la vez con el mismo nombre: solo se guarda la primera
+        raise ProductoInvalido({"nombre": "Ya existe un producto con ese nombre."}) from error
+    except sqlite3.Error as error:
+        raise CatalogoNoDisponible("No se ha podido guardar el producto") from error
 
 
 def cambiarStock(idProducto, stock):

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titulo %}Añadir producto · El Hogar del Hobbit{% endblock %}
+{% macro campo_error(nombre) %}
+  {% if errores[nombre] %}<p class="campo-error" id="error-{{ nombre }}">{{ errores[nombre] }}</p>{% endif %}
+{% endmacro %}
+{% macro invalido(nombre) %}{% if errores[nombre] %}aria-invalid="true" aria-describedby="error-{{ nombre }}"{% endif %}{% endmacro %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <h1>Añadir producto</h1>
+  <p>El producto se publica en el catálogo nada más guardarlo. Todos los datos son ficticios.</p>
+
+  {% if error_general %}
+    <p class="aviso aviso-error" role="alert">{{ error_general }}</p>
+  {% endif %}
+  {% if errores %}
+    {# US-12-AC-03: resumen de los campos que hay que corregir #}
+    <div class="aviso aviso-error" role="alert">
+      <p><strong>No se ha guardado el producto. Corrige estos campos:</strong></p>
+      <ul>{% for campo, mensaje in errores.items() %}<li><a href="#{{ campo }}">{{ mensaje }}</a></li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="formulario form-producto" method="post" novalidate>
+    <label for="nombre">Nombre</label>
+    <input id="nombre" name="nombre" value="{{ datos.nombre or '' }}" maxlength="100" required {{ invalido('nombre') }}>
+    {{ campo_error('nombre') }}
+
+    <label for="precio">Precio en euros <span class="ayuda">por ejemplo 19,95</span></label>
+    <input id="precio" name="precio" value="{{ datos.precio or '' }}" inputmode="decimal" required {{ invalido('precio') }}>
+    {{ campo_error('precio') }}
+
+    <label for="tipo">Categoría</label>
+    <select id="tipo" name="tipo" required {{ invalido('tipo') }}>
+      <option value="">Elige una categoría</option>
+      {% for clave, texto in categorias.items() %}
+        <option value="{{ clave }}" {% if datos.tipo == clave %}selected{% endif %}>{{ texto }}</option>
+      {% endfor %}
+    </select>
+    {{ campo_error('tipo') }}
+
+    <label for="stock">Unidades en stock <span class="ayuda">con 0 sale como «Agotado»</span></label>
+    <input id="stock" name="stock" value="{{ datos.stock or '' }}" inputmode="numeric" required {{ invalido('stock') }}>
+    {{ campo_error('stock') }}
+
+    <label for="imagen">Dirección de la foto <span class="ayuda">opcional, si no se pone se usa una imagen por defecto</span></label>
+    <input id="imagen" name="imagen" value="{{ datos.imagen or '' }}" placeholder="https://… o /static/img/…" {{ invalido('imagen') }}>
+    {{ campo_error('imagen') }}
+
+    <button type="submit">Guardar producto</button>
+  </form>
+  <p><a href="{{ url_for('catalogo.ver_catalogo') }}">Volver al catálogo</a></p>
+{% endblock %}

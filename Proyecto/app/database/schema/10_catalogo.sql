@@ -10,3 +10,6 @@ CREATE TABLE IF NOT EXISTS productos (
     imagen  TEXT,
     activo  INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0, 1))
 );
+
+-- US-12: no puede haber dos productos con el mismo nombre (evita duplicados al guardar dos veces).
+CREATE UNIQUE INDEX IF NOT EXISTS ux_productos_nombre ON productos (nombre COLLATE NOCASE);

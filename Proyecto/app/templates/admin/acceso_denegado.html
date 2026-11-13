@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titulo %}Acceso denegado · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <h1>Acceso denegado</h1>
+  <p class="aviso aviso-error" role="alert">Solo un administrador de la tienda puede añadir productos. No se ha guardado ningún cambio.</p>
+  <p><a href="{{ url_for('catalogo.ver_catalogo') }}">Volver al catálogo</a></p>
+{% endblock %}
