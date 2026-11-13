@@ -20,6 +20,10 @@
           ('/foro', 'Foro'),
           ('/faqs', 'FAQs')
         ] %}
+        {% if session.get('rol') == 'admin' %}
+          {# US-12: solo el administrador ve el alta de productos #}
+          {% set menu = menu + [('/admin/productos/nuevo', 'Añadir producto')] %}
+        {% endif %}
         {% if session.get('usuario_id') %}
           {% set menu = menu + [('/logout', 'Cerrar sesión')] %}
         {% else %}

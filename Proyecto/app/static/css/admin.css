@@ -1,0 +1,8 @@
+/* Estilos del alta de productos (US-12) */
+.form-producto select {
+  font: inherit; padding: .55rem .7rem; border: 1px solid #b9b1a0; border-radius: 6px; background: #fff;
+}
+/* El campo con error se marca con borde y con texto, no solo con color */
+.form-producto [aria-invalid="true"] { border: 2px solid var(--error); }
+.campo-error { margin: 0; color: var(--error); font-weight: 600; font-size: .92rem; }
+.campo-error::before { content: "⚠ "; }
