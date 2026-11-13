@@ -1,0 +1,13 @@
+/* Estilos del campo de búsqueda del catálogo (US-02) */
+.buscador { margin: 1rem 0 .5rem; }
+.buscador label { display: block; font-weight: 600; margin-bottom: .25rem; }
+.buscador-fila { display: flex; gap: .5rem; max-width: 32rem; }
+.buscador input {
+  flex: 1; min-width: 0; padding: .5rem .75rem;
+  border: 1px solid #8a8070; border-radius: 6px; font-size: 1rem;
+}
+.buscador button {
+  padding: .5rem 1rem; border: 0; border-radius: 6px;
+  background: var(--verde); color: #fff; font-size: 1rem; cursor: pointer;
+}
+.buscador-resultado { color: #555; margin: .25rem 0 1rem; }

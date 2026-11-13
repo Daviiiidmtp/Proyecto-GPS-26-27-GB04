@@ -1,0 +1,12 @@
+{# US-02: campo para buscar productos por nombre. Se incluye en catalogo/lista.html #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/busqueda.css') }}">
+<form class="buscador" role="search" method="get" action="{{ url_for('busqueda.buscar') }}">
+  <label for="q">Buscar por nombre</label>
+  <div class="buscador-fila">
+    <input id="q" name="q" type="search" value="{{ busqueda or '' }}" placeholder="Por ejemplo: dragones" autocomplete="off">
+    <button type="submit">Buscar</button>
+  </div>
+</form>
+{% if busqueda %}
+  <p class="buscador-resultado">Resultados para «{{ busqueda }}» · <a href="{{ url_for('catalogo.ver_catalogo') }}">Ver todo el catálogo</a></p>
+{% endif %}

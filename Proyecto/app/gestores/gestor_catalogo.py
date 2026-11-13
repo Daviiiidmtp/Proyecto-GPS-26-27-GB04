@@ -64,8 +64,17 @@ def getProducto(idProducto):
 
 
 def getProductosPorNombre(nombre):
-    """Productos cuyo nombre contiene el texto. -> list. US-02"""
-    raise NotImplementedError("Pendiente: US-02 Buscar productos")
+    """Productos cuyo nombre contiene el texto. -> list. US-02
+
+    No distingue mayúsculas de minúsculas y quita los espacios del principio
+    y del final. Si el texto está vacío, devuelve todo el catálogo.
+    Lanza CatalogoNoDisponible si no se puede leer la base de datos.
+    """
+    texto = (nombre or "").strip().casefold()
+    productos = getProductos()
+    if not texto:
+        return productos
+    return [producto for producto in productos if texto in producto["nombre"].casefold()]
 
 
 def getProductosPorTipo(tipo):
