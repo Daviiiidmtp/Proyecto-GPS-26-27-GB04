@@ -8,7 +8,7 @@ import sqlite3
 
 from app.gestores import gestor_usuario
 from app.gestores.categorias import CATEGORIAS
-from app.repositories import productos_repo
+from app.repositories import cesta_repo, productos_repo
 
 
 class CatalogoNoDisponible(Exception):
@@ -106,9 +106,89 @@ def getProductosDisponibles():
     return [producto for producto in getProductos() if producto["disponible"]]
 
 
-def anadirProductoCesta(idProducto, cantidad):
-    """Añade un producto a la cesta. -> bool. US-16"""
-    raise NotImplementedError("Pendiente: US-16 Añadir productos a la cesta")
+# ---------- Cesta (US-16) ----------
+# La cesta es un diccionario {"id del producto": cantidad} que la interfaz guarda en la
+# sesión del navegador, porque el checkout simulado no exige cuenta (spec EP-01).
+# La cesta no reserva stock: la disponibilidad se comprueba al añadir, al mostrar la
+# cesta y de nuevo al simular la compra (US-17).
+
+MAXIMO_POR_PRODUCTO = 99
+
+
+class CantidadInvalida(Exception):
+    """La cantidad no es un número entero positivo (regla de US-16)."""
+
+
+class ProductoNoDisponible(Exception):
+    """El producto no se puede añadir. Indica qué artículo es y por qué (US-16-AC-04).
+
+    Motivos: no_existe, agotado, insuficiente.
+    """
+
+    def __init__(self, motivo, mensaje, nombre=None, disponibles=0):
+        super().__init__(mensaje)
+        self.motivo = motivo
+        self.nombre = nombre
+        self.disponibles = disponibles
+
+
+def _cantidad(cantidad):
+    """Convierte la cantidad en un entero positivo o lanza CantidadInvalida."""
+    texto = str(cantidad).strip() if cantidad is not None else ""
+    if not texto.isdigit() or int(texto) < 1:
+        raise CantidadInvalida("La cantidad debe ser un número entero mayor que 0.")
+    if int(texto) > MAXIMO_POR_PRODUCTO:
+        raise CantidadInvalida(f"No puedes añadir más de {MAXIMO_POR_PRODUCTO} unidades de un producto.")
+    return int(texto)
+
+
+def anadirProductoCesta(idProducto, cantidad, cesta):
+    """Añade unidades de un producto disponible a la cesta. -> bool. US-16
+
+    En el diagrama es anadirProductoCesta(idProducto, cantidad); aquí también recibe
+    la cesta de la sesión, que se modifica directamente.
+    Lanza CantidadInvalida si la cantidad no es un entero positivo,
+    ProductoNoDisponible si el producto no existe, está agotado o no hay unidades
+    suficientes (US-16-AC-04), y CatalogoNoDisponible si falla la base de datos.
+    """
+    unidades = _cantidad(cantidad)
+    producto = getProducto(idProducto)
+    if producto is None:
+        raise ProductoNoDisponible("no_existe", "El producto no existe o ya no está a la venta.")
+    if not producto["disponible"]:
+        raise ProductoNoDisponible("agotado", f"«{producto['nombre']}» está agotado.", producto["nombre"])
+    clave = str(producto["id"])
+    total = cesta.get(clave, 0) + unidades
+    if total > MAXIMO_POR_PRODUCTO:
+        raise CantidadInvalida(f"No puedes tener más de {MAXIMO_POR_PRODUCTO} unidades de un producto en la cesta.")
+    if total > producto["stock"]:
+        raise ProductoNoDisponible(
+            "insuficiente",
+            f"No hay unidades suficientes de «{producto['nombre']}». Quedan {producto['stock']}.",
+            producto["nombre"], producto["stock"])
+    cesta[clave] = total
+    return True
+
+
+def quitarProductoCesta(idProducto, cesta, cantidad=None):
+    """Quita unidades de un producto de la cesta, o el producto entero si no se indica cantidad. -> bool. US-16
+
+    Si la cantidad llega a 0, el producto sale de la cesta (US-16-AC-01).
+    Devuelve False si el producto no estaba en la cesta.
+    Lanza CantidadInvalida si la cantidad no es un entero positivo.
+    """
+    clave = str(idProducto)
+    if clave not in cesta:
+        return False
+    if cantidad is None:
+        del cesta[clave]
+        return True
+    restantes = cesta[clave] - _cantidad(cantidad)
+    if restantes > 0:
+        cesta[clave] = restantes
+    else:
+        del cesta[clave]
+    return True
 
 
 def realizarCompra(idUsuario):
@@ -116,9 +196,49 @@ def realizarCompra(idUsuario):
     raise NotImplementedError("Pendiente: US-17 Simular compra")
 
 
-def getCesta(idUsuario):
-    """Cesta del usuario. -> dict. US-16"""
-    raise NotImplementedError("Pendiente: US-16 Añadir productos a la cesta")
+def _linea(clave, cantidad):
+    """Una línea de la cesta con su subtotal y, si no se puede comprar, el motivo (US-16-AC-04)."""
+    fila = cesta_repo.obtener_cualquiera(int(clave))
+    if fila is None:
+        return {"id": int(clave), "nombre": "Producto retirado", "cantidad": cantidad, "precio": 0.0,
+                "subtotal": 0.0, "stock": 0, "se_puede_comprar": False,
+                "problema": "Este producto ya no existe. Quítalo de la cesta."}
+    precio = round(float(fila["precio"]), 2)
+    problema = None
+    if not fila["activo"]:
+        problema = f"«{fila['nombre']}» ya no está a la venta. Quítalo de la cesta."
+    elif fila["stock"] == 0:
+        problema = f"«{fila['nombre']}» está agotado. Quítalo de la cesta."
+    elif cantidad > fila["stock"]:
+        problema = f"Solo quedan {fila['stock']} unidades de «{fila['nombre']}». Reduce la cantidad."
+    return {"id": fila["id"], "nombre": fila["nombre"], "cantidad": cantidad, "precio": precio,
+            "subtotal": round(precio * cantidad, 2), "stock": fila["stock"],
+            "se_puede_comprar": problema is None, "problema": problema}
+
+
+def getCesta(cesta):
+    """Contenido de la cesta con cantidades, precios, subtotales y total. -> dict. US-16
+
+    En el diagrama es getCesta(idUsuario); aquí recibe la cesta de la sesión.
+    Devuelve: lineas (producto, cantidad, precio unitario, subtotal y problema si lo hay),
+    total, unidades, vacia y se_puede_comprar. Con la cesta vacía o con algún artículo
+    que no se puede comprar, se_puede_comprar es False y no se deja iniciar el checkout
+    (US-16-AC-03 y AC-04). Las claves que no son ids válidos se ignoran.
+    Lanza CatalogoNoDisponible si falla la base de datos.
+    """
+    try:
+        lineas = [_linea(clave, cantidad) for clave, cantidad in (cesta or {}).items()
+                  if str(clave).isdigit() and isinstance(cantidad, int) and cantidad > 0]
+    except sqlite3.Error as error:
+        raise CatalogoNoDisponible("No se ha podido cargar la cesta") from error
+    vacia = not lineas
+    return {
+        "lineas": lineas,
+        "total": round(sum(linea["subtotal"] for linea in lineas), 2),
+        "unidades": sum(linea["cantidad"] for linea in lineas),
+        "vacia": vacia,
+        "se_puede_comprar": not vacia and all(linea["se_puede_comprar"] for linea in lineas),
+    }
 
 
 # ---------- @Admin ----------
