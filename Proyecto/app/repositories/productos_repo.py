@@ -38,3 +38,25 @@ def crear(nombre, tipo, precio, stock, imagen):
             (nombre, tipo, precio, stock, imagen),
         )
     return cursor.lastrowid
+
+
+def actualizar_stock(id_producto, stock):
+    """Cambia el stock de un producto publicado. Devuelve True si se ha cambiado.
+
+    BEGIN IMMEDIATE bloquea la escritura mientras dura el cambio: si a la vez llega
+    una compra simulada (US-17), una de las dos espera a que termine la otra.
+    La tabla no admite stock negativo (CHECK stock >= 0), así que nunca puede quedar por debajo de 0.
+    Si algo falla, se deshace y queda el último stock confirmado.
+    """
+    db = get_db()
+    if not db.in_transaction:
+        db.execute("BEGIN IMMEDIATE")
+    try:
+        cursor = db.execute(
+            "UPDATE productos SET stock = ? WHERE id = ? AND activo = 1", (stock, id_producto)
+        )
+        db.commit()
+        return cursor.rowcount == 1
+    except Exception:
+        db.rollback()
+        raise
