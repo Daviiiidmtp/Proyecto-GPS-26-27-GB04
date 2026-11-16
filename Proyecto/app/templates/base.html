@@ -18,6 +18,7 @@
           ('/catalogo', 'Catálogo'),
           ('/eventos', 'Eventos'),
           ('/foro', 'Foro'),
+          ('/cesta', 'Cesta (' ~ (session.get('cesta') or {}).values()|sum ~ ')'),
           ('/faqs', 'FAQs')
         ] %}
         {% if session.get('rol') == 'admin' %}

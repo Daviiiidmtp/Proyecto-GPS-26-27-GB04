@@ -2,6 +2,7 @@
 {% block titulo %}Catálogo · El Hogar del Hobbit{% endblock %}
 {% block contenido %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cesta.css') }}">
 
   {% if portada %}
     <p class="bienvenida">Cartas coleccionables, juegos de mesa y de rol. Todos los productos y precios son ficticios.</p>
@@ -34,6 +35,7 @@
           <p class="producto-precio">{{ '%.2f'|format(p.precio)|replace('.', ',') }} €</p>
           {# El estado se indica con texto, no solo con color #}
           <p class="producto-estado estado-{{ 'disponible' if p.disponible else 'agotado' }}">{{ p.estado }}</p>
+          {% include "catalogo/_anadir_cesta.html" ignore missing %}
         </li>
       {% endfor %}
     </ul>
