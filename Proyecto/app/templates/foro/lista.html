@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Foro · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/foro.css') }}">
+  <h1>Foro de la comunidad</h1>
+  <p class="nota">Temas sobre juegos, cartas y eventos. Cualquiera puede leerlos. Todos los datos son ficticios.</p>
+
+  {# US-07-AC-01: solo una cuenta verificada y no bloqueada ve «Nuevo tema» #}
+  {% if puede_publicar %}
+    <p><a class="boton" href="{{ url_for('foro.nuevo_tema') }}">Nuevo tema</a></p>
+  {% elif not session.get('usuario_id') %}
+    <p class="nota">Para abrir un tema tienes que <a href="{{ url_for('usuarios.login') }}">iniciar sesión</a> con una cuenta verificada.</p>
+  {% endif %}
+
+  {% if error %}
+    <p class="aviso aviso-error" role="alert">Error: no se han podido cargar los temas del foro.</p>
+    <p><a class="boton" href="{{ request.full_path }}">Volver a intentarlo</a></p>
+  {% elif not temas %}
+    <p class="aviso aviso-info" role="status">Todavía no hay temas en el foro.</p>
+  {% else %}
+    <ul class="temas">
+      {% for t in temas %}
+        <li class="tema">
+          <h2 class="tema-titulo"><a href="{{ url_for('foro.ver_tema', id_tema=t.id) }}">{{ t.titulo }}</a></h2>
+          <p class="tema-datos">Por <strong>{{ t.autor }}</strong> · <time>{{ t.fecha }} a las {{ t.hora }}</time></p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

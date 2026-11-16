@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo tema · El Hogar del Hobbit{% endblock %}
+{% macro campo_error(nombre) %}
+  {% if errores[nombre] %}<p class="campo-error" id="error-{{ nombre }}">{{ errores[nombre] }}</p>{% endif %}
+{% endmacro %}
+{% macro invalido(nombre) %}{% if errores[nombre] %}aria-invalid="true" aria-describedby="error-{{ nombre }}"{% endif %}{% endmacro %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/foro.css') }}">
+  <h1>Nuevo tema</h1>
+  <p>Escribe solo texto. No se pueden subir fotos ni archivos.</p>
+
+  {% if error_general %}
+    <p class="aviso aviso-error" role="alert">{{ error_general }}</p>
+  {% endif %}
+  {% if errores %}
+    {# US-07-AC-04: se indica qué campo hay que completar #}
+    <div class="aviso aviso-error" role="alert">
+      <p><strong>No se ha publicado el tema. Corrige estos campos:</strong></p>
+      <ul>{% for campo, mensaje in errores.items() %}<li><a href="#{{ campo }}">{{ mensaje }}</a></li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="formulario form-tema" method="post" novalidate>
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" value="{{ datos.titulo or '' }}" maxlength="120" required {{ invalido('titulo') }}>
+    {{ campo_error('titulo') }}
+
+    <label for="cuerpo">Mensaje</label>
+    <textarea id="cuerpo" name="cuerpo" rows="8" maxlength="5000" required {{ invalido('cuerpo') }}>{{ datos.cuerpo or '' }}</textarea>
+    {{ campo_error('cuerpo') }}
+
+    <button type="submit">Publicar</button>
+  </form>
+  <p><a href="{{ url_for('foro.ver_foro') }}">Cancelar y volver al foro</a></p>
+
+  <script>
+    // Mensaje de carga: el botón se desactiva al enviar para no publicar dos veces
+    document.querySelector(".form-tema").addEventListener("submit", function () {
+      var boton = this.querySelector("button");
+      boton.disabled = true;
+      boton.textContent = "Publicando…";
+    });
+  </script>
+{% endblock %}
