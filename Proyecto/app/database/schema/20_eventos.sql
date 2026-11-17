@@ -11,3 +11,12 @@ CREATE TABLE IF NOT EXISTS eventos (
     publicado           INTEGER NOT NULL DEFAULT 1 CHECK (publicado IN (0, 1)),
     CHECK (plazas_disponibles <= plazas_totales)
 );
+
+-- Inscripciones en eventos (US-05). Cada cuenta se puede inscribir una sola vez en cada evento.
+CREATE TABLE IF NOT EXISTS inscripciones (
+    id          INTEGER PRIMARY KEY,
+    evento_id   INTEGER NOT NULL REFERENCES eventos (id),
+    usuario_id  INTEGER NOT NULL REFERENCES usuarios (id),
+    fecha_hora  TEXT    NOT NULL,
+    UNIQUE (evento_id, usuario_id)
+);

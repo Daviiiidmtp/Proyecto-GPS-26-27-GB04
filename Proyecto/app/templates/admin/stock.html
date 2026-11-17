@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Modificar stock · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/stock.css') }}">
+  <h1>Modificar stock</h1>
+  <p>Escribe las unidades que hay ahora de cada producto. Con 0 unidades el producto sale como «Agotado» y sigue publicado. Todos los datos son ficticios.</p>
+
+  {% if error_general %}
+    <p class="aviso aviso-error" role="alert">{{ error_general }}</p>
+  {% endif %}
+
+  {% if productos %}
+    <table class="tabla-stock">
+      <caption>Stock de los productos publicados</caption>
+      <thead>
+        <tr>
+          <th scope="col">Producto</th>
+          <th scope="col">Stock actual</th>
+          <th scope="col">Disponibilidad</th>
+          <th scope="col">Nuevo stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in productos %}
+          <tr id="producto-{{ p.id }}">
+            <th scope="row">{{ p.nombre }}</th>
+            <td>{{ p.stock }}</td>
+            {# La disponibilidad se indica con texto, no solo con color #}
+            <td class="estado-{{ 'disponible' if p.disponible else 'agotado' }}">{{ p.estado }}</td>
+            <td>
+              <form class="form-stock" method="post" action="{{ url_for('admin_stock.cambiar_stock', id_producto=p.id) }}" novalidate>
+                <label class="solo-lectores" for="stock-{{ p.id }}">Nuevo stock de {{ p.nombre }}</label>
+                <input id="stock-{{ p.id }}" name="stock" type="number" min="0" step="1" inputmode="numeric"
+                       value="{{ intentos.get(p.id, p.stock) }}" required
+                       {% if errores.get(p.id) %}aria-invalid="true" aria-describedby="error-stock-{{ p.id }}"{% endif %}>
+                <button type="submit">Guardar</button>
+                {% if errores.get(p.id) %}
+                  <p class="campo-error" id="error-stock-{{ p.id }}" role="alert">{{ errores[p.id] }}</p>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif not error_general %}
+    <p class="aviso aviso-info" role="status">No hay productos publicados.</p>
+  {% endif %}
+  <p><a href="{{ url_for('catalogo.ver_catalogo') }}">Ver el catálogo</a></p>
+{% endblock %}

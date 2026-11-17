@@ -1,0 +1,16 @@
+/* Estilos del foro (US-07) */
+.nota { color: #555; }
+.temas { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .75rem; }
+.tema { background: #fff; border: 1px solid #d9d2c3; border-radius: 8px; padding: .9rem 1rem; }
+.tema-titulo { margin: 0 0 .25rem; font-size: 1.15rem; }
+.tema-titulo a { color: var(--verde); }
+.tema-datos { margin: 0; color: #444; }
+.tema-completo { background: #fff; border: 1px solid #d9d2c3; border-radius: 8px; padding: 1rem 1.25rem; }
+.tema-cuerpo { white-space: pre-line; margin-top: 1rem; line-height: 1.5; }
+.form-tema { max-width: 40rem; }
+.form-tema textarea {
+  font: inherit; padding: .55rem .7rem; border: 1px solid #b9b1a0; border-radius: 6px; background: #fff; resize: vertical;
+}
+.form-tema [aria-invalid="true"] { border: 2px solid var(--error); }
+.campo-error { margin: 0; color: var(--error); font-weight: 600; font-size: .92rem; }
+.campo-error::before { content: "⚠ "; }

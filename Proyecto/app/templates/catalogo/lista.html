@@ -2,20 +2,26 @@
 {% block titulo %}Catálogo · El Hogar del Hobbit{% endblock %}
 {% block contenido %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cesta.css') }}">
 
   {% if portada %}
     <p class="bienvenida">Cartas coleccionables, juegos de mesa y de rol. Todos los productos y precios son ficticios.</p>
   {% endif %}
   <h1>Catálogo</h1>
 
+  {# US-02: campo de búsqueda. US-03: selector de categoría. Si aún no existe la pieza, no se muestra. #}
+  {% include "catalogo/_buscador.html" ignore missing %}
+  {% include "catalogo/_categorias.html" ignore missing %}
+
   {% if error %}
     {# US-01-AC-04: no se muestra el estado vacío si la carga ha fallado #}
     <p class="aviso aviso-error" role="alert">Error: no se ha podido cargar el catálogo.</p>
-    <p><a class="boton" href="{{ request.path }}">Volver a intentarlo</a></p>
+    {# Se conserva la búsqueda o la categoría al reintentar #}
+    <p><a class="boton" href="{{ request.full_path }}">Volver a intentarlo</a></p>
 
   {% elif not productos %}
-    {# US-01-AC-03 #}
-    <p class="aviso aviso-info" role="status">El catálogo está vacío actualmente.</p>
+    {# US-01-AC-03. La búsqueda y el filtro pasan su propio mensaje #}
+    <p class="aviso aviso-info" role="status">{{ mensaje_vacio or 'El catálogo está vacío actualmente.' }}</p>
 
   {% else %}
     <p class="contador" role="status">{{ productos|length }} productos</p>
@@ -29,6 +35,7 @@
           <p class="producto-precio">{{ '%.2f'|format(p.precio)|replace('.', ',') }} €</p>
           {# El estado se indica con texto, no solo con color #}
           <p class="producto-estado estado-{{ 'disponible' if p.disponible else 'agotado' }}">{{ p.estado }}</p>
+          {% include "catalogo/_anadir_cesta.html" ignore missing %}
         </li>
       {% endfor %}
     </ul>

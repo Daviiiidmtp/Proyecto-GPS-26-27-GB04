@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}{{ tema.titulo if tema else 'Foro' }} · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/foro.css') }}">
+  <p><a href="{{ url_for('foro.ver_foro') }}">Volver al foro</a></p>
+  {% if error %}
+    <p class="aviso aviso-error" role="alert">Error: no se ha podido cargar el tema.</p>
+    <p><a class="boton" href="{{ request.full_path }}">Volver a intentarlo</a></p>
+  {% else %}
+    <article class="tema-completo">
+      <h1>{{ tema.titulo }}</h1>
+      <p class="tema-datos">Por <strong>{{ tema.autor }}</strong> · <time>{{ tema.fecha }} a las {{ tema.hora }}</time></p>
+      {# Solo texto: se muestra tal cual, sin HTML #}
+      <div class="tema-cuerpo">{{ tema.cuerpo }}</div>
+    </article>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,9 @@
+/* Estilos del selector de categoría del catálogo (US-03) */
+.categorias { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 .5rem; }
+.categorias a {
+  padding: .35rem .9rem; border: 1px solid var(--verde); border-radius: 999px;
+  color: var(--verde); text-decoration: none;
+}
+/* La categoría elegida se marca con fondo y con negrita, no solo con color */
+.categorias a[aria-current="page"] { background: var(--verde); color: #fff; font-weight: 700; }
+.categorias-nota { color: #555; margin: .25rem 0 1rem; }

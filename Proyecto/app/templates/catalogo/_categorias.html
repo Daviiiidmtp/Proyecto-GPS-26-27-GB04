@@ -1,0 +1,12 @@
+{# US-03: selector de categoría. Se incluye en catalogo/lista.html #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/categorias.css') }}">
+<nav class="categorias" aria-label="Filtrar por categoría">
+  {# US-03-AC-04: «Todas» quita el filtro #}
+  <a href="{{ url_for('catalogo.ver_catalogo') }}" {% if not categoria and not busqueda %}aria-current="page"{% endif %}>Todas</a>
+  {% for clave, texto in categorias.items() %}
+    <a href="{{ url_for('categorias.filtrar', tipo=clave) }}" {% if categoria == clave %}aria-current="page"{% endif %}>{{ texto }}</a>
+  {% endfor %}
+</nav>
+{% if categoria %}
+  <p class="categorias-nota">Categoría: <strong>{{ categorias[categoria] }}</strong>. Solo se muestran los productos con unidades disponibles · <a href="{{ url_for('catalogo.ver_catalogo') }}">Quitar filtro</a></p>
+{% endif %}
