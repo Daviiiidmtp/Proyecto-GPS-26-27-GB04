@@ -1,0 +1,29 @@
+/* Estilos de la cesta (US-16) */
+.nota { color: #555; }
+.tabla-cesta { width: 100%; border-collapse: collapse; margin: 1rem 0; background: #fff; }
+.tabla-cesta caption { text-align: left; font-weight: 600; margin-bottom: .5rem; }
+.tabla-cesta th, .tabla-cesta td { padding: .6rem .75rem; border-bottom: 1px solid #d9d2c3; text-align: left; vertical-align: top; }
+.tabla-cesta thead th { background: var(--verde-claro); }
+.tabla-cesta tfoot th, .tabla-cesta tfoot td { font-size: 1.1rem; border-bottom: 0; }
+.linea-problema { background: #fbe4e4; }
+.linea-aviso { margin: .25rem 0 0; color: var(--error); font-weight: 600; font-size: .92rem; }
+.linea-aviso::before { content: "⚠ "; }
+.cantidad { display: flex; align-items: center; gap: .5rem; }
+.cantidad form { margin: 0; }
+.cantidad button, .boton-quitar {
+  min-width: 2.2rem; padding: .3rem .6rem; border: 1px solid var(--verde); border-radius: 6px;
+  background: #fff; color: var(--verde); font: inherit; font-weight: 700; cursor: pointer;
+}
+.solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Botón del catálogo */
+.form-anadir-cesta { margin: .5rem 0 0; }
+.boton-cesta {
+  width: 100%; padding: .5rem .8rem; border: 0; border-radius: 6px;
+  background: var(--verde); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+}
+/* En móvil la tabla se lee fila a fila */
+@media (max-width: 40rem) {
+  .tabla-cesta thead { display: none; }
+  .tabla-cesta tr { display: block; border-bottom: 1px solid #d9d2c3; padding: .5rem 0; }
+  .tabla-cesta th, .tabla-cesta td { display: block; border: 0; padding: .2rem .5rem; }
+}
