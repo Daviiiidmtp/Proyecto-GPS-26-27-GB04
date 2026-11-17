@@ -1,0 +1,21 @@
+/* Estilos de la pantalla de modificar stock (US-13) */
+.tabla-stock { width: 100%; border-collapse: collapse; margin: 1rem 0; background: #fff; }
+.tabla-stock caption { text-align: left; font-weight: 600; margin-bottom: .5rem; }
+.tabla-stock th, .tabla-stock td { padding: .6rem .75rem; border-bottom: 1px solid #d9d2c3; text-align: left; vertical-align: top; }
+.tabla-stock thead th { background: var(--verde-claro); }
+.estado-disponible { color: var(--exito); font-weight: 600; }
+.estado-agotado { color: var(--error); font-weight: 600; }
+.form-stock { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.form-stock input { width: 6rem; padding: .45rem .6rem; border: 1px solid #b9b1a0; border-radius: 6px; font: inherit; }
+.form-stock input[aria-invalid="true"] { border: 2px solid var(--error); }
+.form-stock button { padding: .45rem .9rem; border: 0; border-radius: 6px; background: var(--verde); color: #fff; font: inherit; cursor: pointer; }
+.form-stock .campo-error { flex-basis: 100%; margin: 0; color: var(--error); font-weight: 600; }
+.form-stock .campo-error::before { content: "⚠ "; }
+/* Texto que solo leen los lectores de pantalla */
+.solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* En móvil la tabla se lee fila a fila */
+@media (max-width: 40rem) {
+  .tabla-stock thead { display: none; }
+  .tabla-stock tr { display: block; border-bottom: 1px solid #d9d2c3; padding: .5rem 0; }
+  .tabla-stock th, .tabla-stock td { display: block; border: 0; padding: .2rem .5rem; }
+}

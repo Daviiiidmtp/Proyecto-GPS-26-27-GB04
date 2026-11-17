@@ -317,6 +317,45 @@ def crearProducto(producto, idUsuario):
         raise CatalogoNoDisponible("No se ha podido guardar el producto") from error
 
 
-def cambiarStock(idProducto, stock):
-    """@Admin. Cambia las unidades disponibles. -> bool. US-13"""
-    raise NotImplementedError("Pendiente: US-13 Modificar stock")
+class StockInvalido(Exception):
+    """El nuevo stock no es un número entero igual o mayor que 0 (US-13-AC-03)."""
+
+
+class ProductoNoEncontrado(Exception):
+    """El producto no existe o no está publicado (US-13-AC-05)."""
+
+
+def _nuevo_stock(stock):
+    """Convierte el nuevo stock en un entero no negativo o lanza StockInvalido."""
+    texto = str(stock).strip() if stock is not None else ""
+    if texto.startswith("-") and texto[1:].isdigit():
+        raise StockInvalido("El stock no puede ser negativo.")
+    if not texto.isdigit():
+        raise StockInvalido("El stock debe ser un número entero igual o mayor que 0, sin decimales.")
+    return int(texto)
+
+
+def cambiarStock(idProducto, stock, idUsuario):
+    """@Admin. Cambia las unidades disponibles de un producto y devuelve el producto actualizado. -> dict. US-13
+
+    En el diagrama es cambiarStock(idProducto, stock) y devuelve bool; aquí también
+    recibe el usuario de la sesión, para comprobar que es administrador, y devuelve
+    el producto para que la interfaz muestre el stock y la disponibilidad nuevos.
+    Con stock 0 el producto pasa a «Agotado» y sigue publicado (US-13-AC-02).
+    Lanza PermisoDenegado si el usuario no es administrador (US-13-AC-05),
+    ProductoNoEncontrado si el producto no existe (US-13-AC-05),
+    StockInvalido si el valor es negativo o no es entero (US-13-AC-03)
+    y CatalogoNoDisponible si falla el guardado (US-13-AC-06).
+    En todos los errores se conserva el último stock confirmado.
+    """
+    try:
+        if idUsuario is None or gestor_usuario.getRolUsuario(idUsuario) != "admin":
+            raise PermisoDenegado("Solo un administrador puede modificar el stock.")
+        nuevo = _nuevo_stock(stock)
+        if productos_repo.obtener(idProducto) is None:
+            raise ProductoNoEncontrado("El producto no existe o ya no está publicado.")
+        if not productos_repo.actualizar_stock(idProducto, nuevo):
+            raise ProductoNoEncontrado("El producto no existe o ya no está publicado.")
+    except sqlite3.Error as error:
+        raise CatalogoNoDisponible("No se ha podido guardar el stock") from error
+    return getProducto(idProducto)
