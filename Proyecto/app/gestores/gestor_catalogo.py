@@ -5,10 +5,12 @@ NotImplementedError. Los métodos @Admin solo los puede usar un administrador.
 """
 import re
 import sqlite3
+import uuid
+from datetime import datetime
 
 from app.gestores import gestor_usuario
 from app.gestores.categorias import CATEGORIAS
-from app.repositories import cesta_repo, productos_repo
+from app.repositories import cesta_repo, pedidos_repo, productos_repo, usuarios_repo
 
 
 class CatalogoNoDisponible(Exception):
@@ -191,9 +193,116 @@ def quitarProductoCesta(idProducto, cesta, cantidad=None):
     return True
 
 
-def realizarCompra(idUsuario):
-    """Compra simulada de la cesta (sin pagos reales). -> bool. US-17"""
-    raise NotImplementedError("Pendiente: US-17 Simular compra")
+# ---------- Compra simulada (US-17) ----------
+# No hay pagos reales: se elige un método de demostración y no se piden datos
+# financieros (US-17-AC-01). El stock se descuenta al confirmar, una sola vez (AC-05).
+
+METODOS_PAGO = {
+    "tarjeta_demo": "Tarjeta de demostración",
+    "transferencia_demo": "Transferencia de demostración",
+    "tienda_demo": "Pago en tienda de demostración",
+}
+FORMATO_PEDIDO = "%Y-%m-%d %H:%M:%S"
+LONGITUD_MAXIMA_CODIGO = 64
+
+
+class CompraInvalida(Exception):
+    """No se puede completar la compra. `motivo` es un código para la interfaz y `lineas` las líneas con problema.
+
+    Motivos: codigo, metodo_pago, cesta_vacia, no_disponible.
+    En todos los casos no se crea el pedido ni se cambia ningún stock (US-17-AC-04).
+    """
+
+    def __init__(self, motivo, mensaje, lineas=None):
+        super().__init__(mensaje)
+        self.motivo = motivo
+        self.lineas = lineas or []
+
+
+def nuevoCodigoCompra():
+    """Código único para un checkout. -> str. US-17
+
+    La interfaz lo genera al mostrar el resumen y lo envía al confirmar. Si se confirma
+    dos veces con el mismo código, se devuelve el mismo pedido (US-17-AC-07).
+    """
+    return uuid.uuid4().hex
+
+
+def _a_pedido(fila, lineas):
+    momento = datetime.strptime(fila["fecha_hora"], FORMATO_PEDIDO)
+    lineas = [{"id": l["producto_id"], "nombre": l["nombre"], "cantidad": l["cantidad"],
+               "precio": round(float(l["precio"]), 2),
+               "subtotal": round(float(l["precio"]) * l["cantidad"], 2)} for l in lineas]
+    return {
+        "codigo": fila["codigo"],
+        "numero": f"PED-{fila['id']:05d}",
+        "fecha": momento.strftime("%d/%m/%Y"),
+        "hora": momento.strftime("%H:%M"),
+        "metodo_pago": METODOS_PAGO.get(fila["metodo_pago"], fila["metodo_pago"]),
+        "lineas": lineas,
+        "unidades": sum(linea["cantidad"] for linea in lineas),
+        "total": round(float(fila["total"]), 2),
+    }
+
+
+def getPedido(codigo):
+    """Resultado de un pedido simulado por el código de su checkout, o None si no existe. -> dict. US-17
+
+    Devuelve: codigo, numero (PED-00001), fecha, hora, metodo_pago, lineas
+    (nombre, cantidad, precio y subtotal del momento de la compra), unidades y total.
+    Lanza CatalogoNoDisponible si falla la base de datos.
+    """
+    try:
+        fila = pedidos_repo.obtener_por_codigo(codigo)
+        return _a_pedido(fila, pedidos_repo.lineas(fila["id"])) if fila else None
+    except sqlite3.Error as error:
+        raise CatalogoNoDisponible("No se ha podido cargar el pedido") from error
+
+
+def realizarCompra(cesta, metodoPago, codigo, idUsuario=None, ahora=None):
+    """Completa la compra simulada de la cesta y devuelve el resultado del pedido. -> dict. US-17
+
+    En el diagrama es realizarCompra(idUsuario) y devuelve bool; aquí recibe la cesta de la
+    sesión, el método de pago de demostración (una clave de METODOS_PAGO), el código del
+    checkout de nuevoCodigoCompra y, si hay sesión, el usuario. Devuelve el pedido, como getPedido.
+    No se cobra nada ni se piden datos financieros (US-17-AC-01 y AC-03).
+    Si todo es correcto, descuenta las unidades del stock una sola vez y nunca por debajo de 0 (AC-05).
+    Si ya existe un pedido con ese código, lo devuelve sin crear otro ni descontar más (AC-07).
+    Lanza CompraInvalida si el código o el método de pago no son válidos, si la cesta está
+    vacía o si algún artículo está inactivo o sin unidades suficientes (AC-04),
+    y CatalogoNoDisponible si falla la base de datos (AC-06). En los dos casos no se guarda
+    nada y la cesta no se toca, así que se puede corregir o reintentar.
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    """
+    ahora = ahora or datetime.now()
+    codigo = str(codigo or "").strip()
+    if not codigo or len(codigo) > LONGITUD_MAXIMA_CODIGO:
+        raise CompraInvalida("codigo", "El checkout no es válido. Vuelve a la cesta y tramita el pedido de nuevo.")
+    existente = getPedido(codigo)
+    if existente is not None:
+        return existente
+    if metodoPago not in METODOS_PAGO:
+        raise CompraInvalida("metodo_pago", "Elige un método de pago de demostración.")
+    datos = getCesta(cesta)
+    if datos["vacia"]:
+        raise CompraInvalida("cesta_vacia", "Tu cesta está vacía. Añade algún producto antes de tramitar el pedido.")
+    if not datos["se_puede_comprar"]:
+        raise CompraInvalida("no_disponible",
+                             "Hay artículos que no se pueden comprar. Corrige la cesta antes de confirmar.",
+                             [linea for linea in datos["lineas"] if linea["problema"]])
+    try:
+        usuario = idUsuario if idUsuario is not None and usuarios_repo.obtener_por_id(idUsuario) else None
+        pedidos_repo.crear(codigo, usuario, metodoPago, datos["total"], datos["lineas"],
+                           ahora.strftime(FORMATO_PEDIDO))
+    except pedidos_repo.SinStock as error:
+        # El stock ha cambiado entre el resumen y la confirmación
+        raise CompraInvalida(
+            "no_disponible",
+            f"No hay unidades suficientes de «{error.nombre}» o ya no está a la venta. Corrige la cesta antes de confirmar.",
+            [linea for linea in datos["lineas"] if linea["id"] == error.producto_id]) from error
+    except sqlite3.Error as error:
+        raise CatalogoNoDisponible("No se ha podido completar la compra") from error
+    return getPedido(codigo)
 
 
 def _linea(clave, cantidad):
