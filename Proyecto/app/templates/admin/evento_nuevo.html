@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block titulo %}Añadir evento · El Hogar del Hobbit{% endblock %}
+{% macro campo_error(nombre) %}
+  {% if errores[nombre] %}<p class="campo-error" id="error-{{ nombre }}">{{ errores[nombre] }}</p>{% endif %}
+{% endmacro %}
+{% macro invalido(nombre) %}{% if errores[nombre] %}aria-invalid="true" aria-describedby="error-{{ nombre }}"{% endif %}{% endmacro %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <h1>Añadir evento</h1>
+  <p>El evento se publica en el calendario nada más guardarlo, con todas las plazas libres. Todos los datos son ficticios.</p>
+
+  {% if error_general %}
+    <p class="aviso aviso-error" role="alert">{{ error_general }}</p>
+  {% endif %}
+  {% if errores %}
+    {# US-06-AC-03: resumen de los datos que hay que corregir #}
+    <div class="aviso aviso-error" role="alert">
+      <p><strong>No se ha publicado el evento. Corrige estos datos:</strong></p>
+      <ul>{% for campo, mensaje in errores.items() %}<li><a href="#{{ campo }}">{{ mensaje }}</a></li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="formulario form-evento" method="post" novalidate>
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" value="{{ datos.titulo or '' }}" maxlength="120" required {{ invalido('titulo') }}>
+    {{ campo_error('titulo') }}
+
+    <label for="tipo">Tipo</label>
+    <select id="tipo" name="tipo" required {{ invalido('tipo') }}>
+      <option value="">Elige el tipo</option>
+      {% for clave, texto in tipos.items() %}
+        <option value="{{ clave }}" {% if datos.tipo == clave %}selected{% endif %}>{{ texto }}</option>
+      {% endfor %}
+    </select>
+    {{ campo_error('tipo') }}
+
+    <label for="fecha">Fecha <span class="ayuda">tiene que ser futura</span></label>
+    <input id="fecha" name="fecha" type="date" value="{{ datos.fecha or '' }}" required {{ invalido('fecha') }}>
+    {{ campo_error('fecha') }}
+
+    <label for="hora">Hora <span class="ayuda">hora de la tienda</span></label>
+    <input id="hora" name="hora" type="time" value="{{ datos.hora or '' }}" required {{ invalido('hora') }}>
+    {{ campo_error('hora') }}
+
+    <label for="capacidad">Capacidad <span class="ayuda">número de plazas, entero mayor que 0</span></label>
+    <input id="capacidad" name="capacidad" value="{{ datos.capacidad or '' }}" inputmode="numeric" required {{ invalido('capacidad') }}>
+    {{ campo_error('capacidad') }}
+
+    <button type="submit">Publicar evento</button>
+  </form>
+  <p><a href="{{ url_for('eventos.ver_eventos') }}">Volver al calendario</a></p>
+
+  <script>
+    // Mensaje de carga: el botón se desactiva al enviar para no publicar dos veces
+    document.querySelector(".form-evento").addEventListener("submit", function () {
+      var boton = this.querySelector("button");
+      boton.disabled = true;
+      boton.textContent = "Publicando…";
+    });
+  </script>
+{% endblock %}
