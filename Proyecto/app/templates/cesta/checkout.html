@@ -50,11 +50,19 @@
   <p><a href="{{ url_for('cesta.ver_cesta') }}">Volver a la cesta para cambiar algo</a></p>
 
   <script>
+    var formulario = document.querySelector(".form-checkout");
+    var boton = formulario.querySelector("button");
+    var texto = boton.textContent;
     // Mensaje de carga: el botón se desactiva al enviar para no confirmar dos veces
-    document.querySelector(".form-checkout").addEventListener("submit", function () {
-      var boton = this.querySelector("button");
+    formulario.addEventListener("submit", function () {
       boton.disabled = true;
       boton.textContent = "Procesando la compra simulada…";
+    });
+    // Al volver con el botón «Atrás» del navegador, la página sale de la memoria del navegador
+    // con el botón desactivado. Se vuelve a activar para poder confirmar otra vez (US-17-AC-07)
+    window.addEventListener("pageshow", function () {
+      boton.disabled = false;
+      boton.textContent = texto;
     });
   </script>
 {% endblock %}

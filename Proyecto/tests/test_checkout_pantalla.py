@@ -97,3 +97,10 @@ def test_si_falla_la_base_de_datos_avisa_y_vuelve_a_la_cesta(client, monkeypatch
     monkeypatch.setattr(gestor_catalogo, "getCesta", falla)
     respuesta = client.get(CHECKOUT)
     assert respuesta.status_code == 302 and respuesta.headers["Location"].endswith("/cesta")
+
+
+def test_al_volver_atras_el_boton_de_confirmar_se_vuelve_a_activar(client):
+    """US-17-AC-07: al volver al resumen con «Atrás», el botón no se queda en «Procesando…»."""
+    poner_cesta(client, {"1": 1})
+    html = client.get(CHECKOUT).get_data(as_text=True)
+    assert 'addEventListener("pageshow"' in html and "boton.disabled = false" in html
