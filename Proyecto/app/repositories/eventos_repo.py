@@ -67,3 +67,19 @@ def inscribir(id_evento, id_usuario, fecha_hora):
     except Exception:
         db.rollback()
         raise
+
+
+def crear(titulo, tipo, fecha_hora, plazas):
+    """Guarda un evento publicado con todas sus plazas libres y devuelve su id (US-06-AC-02).
+
+    La capacidad inicial es el aforo total. Se guarda en una sola operación:
+    si algo falla, no queda nada a medias.
+    """
+    db = get_db()
+    with db:
+        cursor = db.execute(
+            "INSERT INTO eventos (titulo, tipo, fecha_hora, plazas_totales, plazas_disponibles, publicado) "
+            "VALUES (?, ?, ?, ?, ?, 1)",
+            (titulo, tipo, fecha_hora, plazas, plazas),
+        )
+    return cursor.lastrowid
