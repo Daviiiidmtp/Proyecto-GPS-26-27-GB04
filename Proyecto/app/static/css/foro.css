@@ -14,3 +14,13 @@
 .form-tema [aria-invalid="true"] { border: 2px solid var(--error); }
 .campo-error { margin: 0; color: var(--error); font-weight: 600; font-size: .92rem; }
 .campo-error::before { content: "⚠ "; }
+/* Respuestas (US-08) */
+.respuestas { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .75rem; }
+.respuesta { background: #fff; border: 1px solid #d9d2c3; border-left: 4px solid var(--verde); border-radius: 8px; padding: .75rem 1rem; }
+.respuesta:target { outline: 3px solid var(--verde); }
+.respuesta-cuerpo { white-space: pre-line; margin: .5rem 0 0; line-height: 1.5; }
+.form-respuesta { max-width: 40rem; margin-top: 1rem; }
+.form-respuesta textarea {
+  font: inherit; padding: .55rem .7rem; border: 1px solid #b9b1a0; border-radius: 6px; background: #fff; resize: vertical;
+}
+.form-respuesta [aria-invalid="true"] { border: 2px solid var(--error); }

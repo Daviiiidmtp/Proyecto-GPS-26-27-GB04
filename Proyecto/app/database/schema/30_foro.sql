@@ -11,3 +11,15 @@ CREATE TABLE IF NOT EXISTS temas (
 );
 
 CREATE INDEX IF NOT EXISTS ix_temas_fecha ON temas (fecha_hora);
+
+-- Respuestas de los temas (US-08). Solo texto, sin fotos ni archivos.
+-- Se muestran al final del tema, de la más antigua a la más reciente. Si se borra el tema, se borran sus respuestas.
+CREATE TABLE IF NOT EXISTS respuestas (
+    id          INTEGER PRIMARY KEY,
+    tema_id     INTEGER NOT NULL REFERENCES temas (id) ON DELETE CASCADE,
+    cuerpo      TEXT    NOT NULL CHECK (length(trim(cuerpo)) > 0),
+    usuario_id  INTEGER NOT NULL REFERENCES usuarios (id),
+    fecha_hora  TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_respuestas_tema ON respuestas (tema_id, fecha_hora);

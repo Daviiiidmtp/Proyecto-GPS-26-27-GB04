@@ -7,6 +7,9 @@
   {% if error %}
     <p class="aviso aviso-error" role="alert">Error: no se ha podido cargar el tema.</p>
     <p><a class="boton" href="{{ request.full_path }}">Volver a intentarlo</a></p>
+  {% elif no_disponible %}
+    {# US-08-AC-04 #}
+    <p class="aviso aviso-error" role="alert">{{ no_disponible }}</p>
   {% else %}
     <article class="tema-completo">
       <h1>{{ tema.titulo }}</h1>
@@ -14,5 +17,49 @@
       {# Solo texto: se muestra tal cual, sin HTML #}
       <div class="tema-cuerpo">{{ tema.cuerpo }}</div>
     </article>
+
+    {# US-08-AC-01 y AC-03: respuestas públicas, en orden cronológico, con autor y fecha #}
+    <section aria-labelledby="titulo-respuestas">
+      <h2 id="titulo-respuestas">Respuestas ({{ tema.respuestas|length }})</h2>
+      {% if tema.respuestas %}
+        <ol class="respuestas">
+          {% for r in tema.respuestas %}
+            <li class="respuesta" id="respuesta-{{ r.id }}">
+              <p class="tema-datos">Por <strong>{{ r.autor }}</strong> · <time>{{ r.fecha }} a las {{ r.hora }}</time></p>
+              <p class="respuesta-cuerpo">{{ r.cuerpo }}</p>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="aviso aviso-info" role="status">Todavía no hay respuestas. Puedes ser el primero en responder.</p>
+      {% endif %}
+    </section>
+
+    {# US-08-AC-01: solo una cuenta verificada y no bloqueada ve el formulario #}
+    {% if puede_publicar %}
+      <h2>Responder</h2>
+      {% if error_general %}
+        <p class="aviso aviso-error" role="alert">{{ error_general }}</p>
+      {% endif %}
+      <form class="formulario form-respuesta" method="post" action="{{ url_for('foro.responder', id_tema=tema.id) }}" novalidate>
+        <label for="cuerpo">Tu respuesta</label>
+        <textarea id="cuerpo" name="cuerpo" rows="5" maxlength="5000" required
+          {% if errores.cuerpo %}aria-invalid="true" aria-describedby="error-cuerpo"{% endif %}>{{ texto }}</textarea>
+        {% if errores.cuerpo %}<p class="campo-error" id="error-cuerpo" role="alert">{{ errores.cuerpo }}</p>{% endif %}
+        <button type="submit">Responder</button>
+      </form>
+      <script>
+        // Mensaje de carga: el botón se desactiva al enviar para no responder dos veces
+        document.querySelector(".form-respuesta").addEventListener("submit", function () {
+          var boton = this.querySelector("button");
+          boton.disabled = true;
+          boton.textContent = "Publicando…";
+        });
+      </script>
+    {% elif not session.get('usuario_id') %}
+      <p class="nota">Para responder tienes que <a href="{{ url_for('usuarios.login') }}">iniciar sesión</a> con una cuenta verificada.</p>
+    {% else %}
+      <p class="nota">Tu cuenta no puede responder en el foro.</p>
+    {% endif %}
   {% endif %}
 {% endblock %}
