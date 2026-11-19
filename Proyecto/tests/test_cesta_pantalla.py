@@ -139,7 +139,8 @@ def test_si_falla_la_carga_sale_un_error_con_reintentar(client, monkeypatch):
     assert "Volver a intentarlo" in respuesta.get_data(as_text=True)
 
 
-def test_tramitar_con_todo_correcto_avisa_de_que_llega_con_la_compra_simulada(client):
+def test_tramitar_con_todo_correcto_abre_el_resumen_de_la_compra(client):
+    """Con US-17 el botón lleva al resumen de la compra simulada (GB04-109)."""
     anadir(client, COLONOS)
-    client.get("/cesta/checkout")
-    assert "La compra simulada estará disponible en la próxima versión." in client.get("/cesta").get_data(as_text=True)
+    respuesta = client.get("/cesta/checkout")
+    assert respuesta.status_code == 200 and "Confirmar compra simulada" in respuesta.get_data(as_text=True)
