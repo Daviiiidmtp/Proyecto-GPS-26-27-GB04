@@ -9,3 +9,8 @@ INSERT OR IGNORE INTO temas (id, titulo, cuerpo, usuario_id, fecha_hora) VALUES
     (2, '¿Qué mazo usáis para el Torneo de Dragones de Bruma?',
         'Estoy preparando el torneo de diciembre y dudo entre un mazo de bosque y uno de niebla. ¿Qué os funciona mejor?',
         2, '2026-11-08 18:30:00');
+
+-- Respuestas de ejemplo (US-08).
+INSERT OR IGNORE INTO respuestas (id, tema_id, cuerpo, usuario_id, fecha_hora) VALUES
+    (1, 2, 'El de bosque aguanta mejor las primeras rondas. Si vienes el jueves lo probamos en una mesa.',
+        1, '2026-11-09 11:15:00');

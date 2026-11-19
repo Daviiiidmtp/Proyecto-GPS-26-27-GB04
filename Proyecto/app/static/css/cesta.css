@@ -27,3 +27,13 @@
   .tabla-cesta tr { display: block; border-bottom: 1px solid #d9d2c3; padding: .5rem 0; }
   .tabla-cesta th, .tabla-cesta td { display: block; border: 0; padding: .2rem .5rem; }
 }
+/* Resumen de la compra simulada (US-17) */
+.metodos-pago { border: 1px solid #d9d2c3; border-radius: 8px; padding: .75rem 1rem; margin: 1rem 0; background: #fff; }
+.metodos-pago legend { font-weight: 600; padding: 0 .3rem; }
+.metodo-pago { display: flex; align-items: center; gap: .5rem; padding: .35rem 0; }
+.metodos-pago[aria-invalid="true"] { border: 2px solid var(--error); }
+.boton-confirmar {
+  padding: .6rem 1.2rem; border: 0; border-radius: 6px; background: var(--verde); color: #fff;
+  font: inherit; font-weight: 700; cursor: pointer;
+}
+.boton-confirmar:disabled { opacity: .7; cursor: wait; }

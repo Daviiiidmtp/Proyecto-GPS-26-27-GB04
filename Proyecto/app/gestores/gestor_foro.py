@@ -24,6 +24,18 @@ class TemaInvalido(Exception):
         self.errores = errores
 
 
+class RespuestaInvalida(Exception):
+    """El texto de la respuesta no es válido. `errores` indica el campo y el motivo (US-08-AC-02)."""
+
+    def __init__(self, errores):
+        super().__init__("; ".join(errores.values()))
+        self.errores = errores
+
+
+class TemaNoEncontrado(Exception):
+    """El tema no existe o ya no está disponible. No se guarda la respuesta (US-08-AC-04)."""
+
+
 class PublicacionDenegada(Exception):
     """La cuenta no puede publicar. `motivo` es un código para la interfaz y el mensaje explica qué hacer.
 
@@ -60,16 +72,32 @@ def getTemas():
     return [_a_tema(fila) for fila in filas]
 
 
-def getTema(idTema):
-    """Un tema por su id, o None si no existe. -> dict. US-07 y US-08
+def _a_respuesta(fila):
+    momento = datetime.strptime(fila["fecha_hora"], FORMATO)
+    return {
+        "id": fila["id"],
+        "cuerpo": fila["cuerpo"],
+        "autor": fila["autor"],
+        "fecha": momento.strftime("%d/%m/%Y"),
+        "hora": momento.strftime("%H:%M"),
+    }
 
-    Las respuestas del tema se añadirán con US-08.
+
+def getTema(idTema):
+    """Un tema por su id con sus respuestas, o None si no existe. -> dict. US-07 y US-08
+
+    `respuestas` va de la más antigua a la más reciente, cada una con autor, fecha y hora.
+    Se lee sin sesión: las respuestas son públicas (US-08-AC-01).
     """
     try:
         fila = foro_repo.obtener_tema(idTema)
+        if fila is None:
+            return None
+        tema = _a_tema(fila)
+        tema["respuestas"] = [_a_respuesta(r) for r in foro_repo.listar_respuestas(idTema)]
     except sqlite3.Error as error:
         raise ForoNoDisponible("No se ha podido cargar el tema") from error
-    return _a_tema(fila) if fila else None
+    return tema
 
 
 def puedePublicar(idUsuario):
@@ -142,9 +170,39 @@ def crearTema(titulo, cuerpo, idUsuario, ahora=None):
         raise ForoNoDisponible("No se ha podido publicar el tema") from error
 
 
-def anadirComentario(idUsuario, idTema, comentario):
-    """Responde en un tema. -> bool. US-08"""
-    raise NotImplementedError("Pendiente: US-08 Responder en foro")
+def anadirComentario(idUsuario, idTema, comentario, ahora=None):
+    """Publica una respuesta al final de un tema y devuelve su id. -> int. US-08
+
+    En el diagrama devuelve bool; aquí devuelve el id para poder enlazar la respuesta.
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    Lanza PublicacionDenegada si la cuenta no puede responder: visitante, sesión caducada,
+    cuenta sin verificar o bloqueada (US-08-AC-01 y AC-05),
+    TemaNoEncontrado si el tema no existe (US-08-AC-04),
+    RespuestaInvalida si el texto está vacío o es demasiado largo (US-08-AC-02)
+    y ForoNoDisponible si falla el guardado (US-08-AC-05). En todos los casos no se guarda nada.
+    Si el mismo autor ya ha publicado la misma respuesta en ese tema hace un momento,
+    devuelve ese id y no guarda un duplicado (US-08-AC-05).
+    """
+    ahora = ahora or datetime.now()
+    _comprobar_cuenta(idUsuario)
+    try:
+        if foro_repo.obtener_tema(idTema) is None:
+            raise TemaNoEncontrado("Este tema ya no está disponible. No se ha guardado tu respuesta.")
+    except sqlite3.Error as error:
+        raise ForoNoDisponible("No se ha podido comprobar el tema") from error
+    cuerpo = (comentario or "").strip()
+    if not cuerpo:
+        raise RespuestaInvalida({"cuerpo": "Escribe el texto de la respuesta."})
+    if len(cuerpo) > LONGITUD_MAXIMA_CUERPO:
+        raise RespuestaInvalida({"cuerpo": f"La respuesta no puede tener más de {LONGITUD_MAXIMA_CUERPO} caracteres."})
+    try:
+        repetida = foro_repo.buscar_respuesta_igual_reciente(
+            idTema, idUsuario, cuerpo, (ahora - MARGEN_DUPLICADO).strftime(FORMATO))
+        if repetida is not None:
+            return repetida
+        return foro_repo.crear_respuesta(idTema, cuerpo, idUsuario, ahora.strftime(FORMATO))
+    except sqlite3.Error as error:
+        raise ForoNoDisponible("No se ha podido publicar la respuesta") from error
 
 
 def eliminarMensaje(idMensaje):
