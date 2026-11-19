@@ -22,8 +22,8 @@
           ('/faqs', 'FAQs')
         ] %}
         {% if session.get('rol') == 'admin' %}
-          {# US-12 y US-13: solo el administrador ve el alta de productos y el stock #}
-          {% set menu = menu + [('/admin/productos/nuevo', 'Añadir producto'), ('/admin/productos/stock', 'Modificar stock')] %}
+          {# US-12, US-13 y US-06: solo el administrador ve el alta de productos, el stock y el alta de eventos #}
+          {% set menu = menu + [('/admin/productos/nuevo', 'Añadir producto'), ('/admin/productos/stock', 'Modificar stock'), ('/admin/eventos/nuevo', 'Añadir evento')] %}
         {% endif %}
         {% if session.get('usuario_id') %}
           {% set menu = menu + [('/logout', 'Cerrar sesión')] %}
