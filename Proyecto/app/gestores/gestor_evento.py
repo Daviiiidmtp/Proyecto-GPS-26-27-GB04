@@ -109,6 +109,31 @@ def getEventosInscritos(idUsuario):
         raise EventosNoDisponibles("No se han podido cargar tus inscripciones") from error
 
 
+def getEvento(idEvento, ahora=None):
+    """Ficha de un evento publicado, o None si no existe. -> dict. US-11
+
+    A la ficha se llega desde una notificación (US-11-AC-03). Sigue disponible aunque el evento
+    esté completo o ya se haya celebrado, y lo indica en `estado` (US-11-AC-05).
+    `admite_inscripcion` es False si no quedan plazas o el evento ya pasó: entonces la interfaz
+    no muestra el botón «Inscribirse».
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    Lanza EventosNoDisponibles si no se puede leer la base de datos.
+    """
+    ahora = ahora or datetime.now()
+    try:
+        fila = eventos_repo.obtener(idEvento)
+    except sqlite3.Error as error:
+        raise EventosNoDisponibles("No se ha podido cargar el evento") from error
+    if fila is None:
+        return None
+    evento = _a_evento(fila)
+    evento["pasado"] = datetime.strptime(fila["fecha_hora"], FORMATO) < ahora
+    if evento["pasado"]:
+        evento["estado"] = "Ya celebrado"
+    evento["admite_inscripcion"] = not evento["pasado"] and not evento["completo"]
+    return evento
+
+
 # ---------- @Admin ----------
 
 TIPOS = {"torneo": "Torneo", "actividad": "Actividad"}
@@ -193,6 +218,7 @@ def crearEvento(evento, idUsuario, ahora=None):
     Lanza PermisoDenegado si no hay sesión o la cuenta no es de administrador (US-06-AC-04),
     EventoInvalido con el campo y el motivo de cada error (US-06-AC-03)
     y EventosNoDisponibles si falla el guardado (US-06-AC-05). En los tres casos no se guarda nada.
+    Al publicarlo, cada cuenta Cliente activa recibe una notificación no leída (US-11-AC-01).
     """
     ahora = ahora or datetime.now()
     try:
@@ -204,6 +230,8 @@ def crearEvento(evento, idUsuario, ahora=None):
         errores, datos = _validar_evento(evento, ahora)
         if errores:
             raise EventoInvalido(errores)
-        return eventos_repo.crear(datos["titulo"], datos["tipo"], datos["fecha_hora"], datos["capacidad"])
+        # US-11-AC-01: el evento y las notificaciones a los clientes se guardan juntos
+        return eventos_repo.crear(datos["titulo"], datos["tipo"], datos["fecha_hora"], datos["capacidad"],
+                                  ahora.strftime(FORMATO))
     except sqlite3.Error as error:
         raise EventosNoDisponibles("No se ha podido guardar el evento") from error
