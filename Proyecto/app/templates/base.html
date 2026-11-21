@@ -55,6 +55,8 @@
   </main>
 
   <footer class="pie">
+    {# US-14-AC-01: la página de contacto se abre desde el pie de página #}
+    <p><a href="/contacto" {% if request.path == '/contacto' %}aria-current="page"{% endif %}>Contacto</a></p>
     <p>Proyecto académico GPS · Grupo GB04 · Todos los datos son ficticios.</p>
   </footer>
 </body>
