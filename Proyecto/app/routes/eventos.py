@@ -1,5 +1,5 @@
-"""Pantalla del calendario de eventos (US-04) e inscripción en eventos (US-05)."""
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+"""Pantalla del calendario de eventos (US-04), inscripción en eventos (US-05) y ficha del evento (US-11)."""
+from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
 
 from app.gestores import gestor_evento
 
@@ -24,10 +24,28 @@ def ver_eventos():
                            tipo=tipo, tipos=TIPOS)
 
 
+@bp.route("/eventos/<int:id_evento>")
+def ver_evento(id_evento):
+    """US-11-AC-03 y AC-05: ficha del evento, también si está completo o ya se ha celebrado."""
+    try:
+        evento = gestor_evento.getEvento(id_evento)
+        inscritos = gestor_evento.getEventosInscritos(session.get("usuario_id"))
+    except gestor_evento.EventosNoDisponibles:
+        return render_template("eventos/lista.html", eventos=[], inscritos=set(), error=True,
+                               tipo=None, tipos=TIPOS), 503
+    if evento is None:
+        abort(404)
+    return render_template("eventos/ficha.html", e=evento, inscrito=evento["id"] in inscritos)
+
+
 @bp.route("/eventos/<int:id_evento>/inscribirse", methods=["POST"])
 def inscribirse(id_evento):
     """US-05: inscribe al usuario de la sesión y vuelve al calendario con un mensaje."""
-    volver = redirect(url_for("eventos.ver_eventos", tipo=request.form.get("tipo") or None))
+    if request.form.get("volver") == "ficha":
+        # US-11: desde la ficha del evento se vuelve a la ficha
+        volver = redirect(url_for("eventos.ver_evento", id_evento=id_evento))
+    else:
+        volver = redirect(url_for("eventos.ver_eventos", tipo=request.form.get("tipo") or None))
     try:
         gestor_evento.apuntarmeEnEvento(id_evento, session.get("usuario_id"))
     except gestor_evento.InscripcionDenegada as error:

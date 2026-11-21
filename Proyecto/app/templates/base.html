@@ -26,7 +26,9 @@
           {% set menu = menu + [('/admin/productos/nuevo', 'Añadir producto'), ('/admin/productos/stock', 'Modificar stock'), ('/admin/eventos/nuevo', 'Añadir evento')] %}
         {% endif %}
         {% if session.get('usuario_id') %}
-          {% set menu = menu + [('/logout', 'Cerrar sesión')] %}
+          {# US-11-AC-02: campana con las notificaciones sin leer, solo con sesión iniciada #}
+          {% set campana = '🔔 Notificaciones' ~ (' (' ~ notificaciones_sin_leer ~ ')' if notificaciones_sin_leer is not none else '') %}
+          {% set menu = menu + [('/notificaciones', campana), ('/logout', 'Cerrar sesión')] %}
         {% else %}
           {% set menu = menu + [('/registro', 'Registro'), ('/login', 'Iniciar sesión')] %}
         {% endif %}
