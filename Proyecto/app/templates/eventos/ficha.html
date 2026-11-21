@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}{{ e.titulo }} · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/eventos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notificaciones.css') }}">
+  <p><a href="{{ url_for('eventos.ver_eventos') }}">Volver al calendario</a></p>
+  {# US-11-AC-03: ficha del evento al abrir una notificación #}
+  <article class="ficha-evento">
+    <h1>{{ e.titulo }}</h1>
+    <dl class="ficha-datos">
+      <dt>Tipo</dt><dd>{{ 'Torneo' if e.tipo == 'torneo' else 'Actividad' }}</dd>
+      <dt>Fecha</dt><dd>{{ e.fecha }} a las {{ e.hora }}</dd>
+      <dt>Plazas</dt><dd>{{ e.plazas_disponibles }} de {{ e.plazas_totales }} libres</dd>
+      {# El estado se indica con texto, no solo con color #}
+      <dt>Estado</dt><dd class="evento-estado estado-{{ 'libre' if e.admite_inscripcion else 'completo' }}">{{ e.estado }}</dd>
+    </dl>
+
+    {% if inscrito %}
+      <p class="evento-inscrito">Inscrito</p>
+    {% elif e.pasado %}
+      {# US-11-AC-05 #}
+      <p class="aviso aviso-info" role="status">Este evento ya se ha celebrado. No admite inscripciones.</p>
+    {% elif e.completo %}
+      {# US-11-AC-05 #}
+      <p class="aviso aviso-info" role="status">Este evento está completo. No quedan plazas.</p>
+    {% elif not session.get('usuario_id') %}
+      <p class="nota">Para inscribirte tienes que <a href="{{ url_for('usuarios.login') }}">iniciar sesión</a> con una cuenta verificada.</p>
+    {% else %}
+      <form class="form-inscripcion" method="post" action="{{ url_for('eventos.inscribirse', id_evento=e.id) }}">
+        <input type="hidden" name="volver" value="ficha">
+        <button type="submit" class="boton boton-inscribirse">Inscribirse</button>
+      </form>
+    {% endif %}
+  </article>
+
+  <script>
+    // Mensaje de carga: el botón se desactiva al enviar para no inscribirse dos veces
+    document.querySelectorAll(".form-inscripcion").forEach(function (form) {
+      form.addEventListener("submit", function () {
+        var boton = form.querySelector("button");
+        boton.disabled = true;
+        boton.textContent = "Inscribiendo…";
+      });
+    });
+  </script>
+{% endblock %}

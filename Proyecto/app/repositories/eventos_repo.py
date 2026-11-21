@@ -1,5 +1,6 @@
 """Consultas SQL sobre la tabla `eventos`."""
 from app.db import get_db
+from app.repositories import notificaciones_repo
 
 
 def listar_publicados_desde(fecha_hora, tipo=None):
@@ -69,11 +70,12 @@ def inscribir(id_evento, id_usuario, fecha_hora):
         raise
 
 
-def crear(titulo, tipo, fecha_hora, plazas):
+def crear(titulo, tipo, fecha_hora, plazas, publicado_en=None):
     """Guarda un evento publicado con todas sus plazas libres y devuelve su id (US-06-AC-02).
 
-    La capacidad inicial es el aforo total. Se guarda en una sola operación:
-    si algo falla, no queda nada a medias.
+    La capacidad inicial es el aforo total. Si se indica `publicado_en`, en la misma operación
+    se crea una notificación para cada cuenta Cliente activa (US-11-AC-01).
+    Se guarda en una sola operación: si algo falla, no queda nada a medias.
     """
     db = get_db()
     with db:
@@ -82,4 +84,6 @@ def crear(titulo, tipo, fecha_hora, plazas):
             "VALUES (?, ?, ?, ?, ?, 1)",
             (titulo, tipo, fecha_hora, plazas, plazas),
         )
+        if publicado_en is not None:
+            notificaciones_repo.avisar_evento(cursor.lastrowid, publicado_en)
     return cursor.lastrowid

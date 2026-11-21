@@ -47,3 +47,4 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .aviso-info  { background: var(--verde-claro); border-color: var(--verde); }
 
 .pie { text-align: center; font-size: .9rem; padding: 1rem; color: #555; }
+.pie a { color: var(--verde); font-weight: 600; }
