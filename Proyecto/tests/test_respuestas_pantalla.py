@@ -52,12 +52,18 @@ def test_una_cuenta_activa_ve_el_formulario_sin_adjuntos(app, client):
     assert '<label for="cuerpo">Tu respuesta</label>' in html and 'type="file"' not in html
 
 
-@pytest.mark.parametrize("estado", ["pendiente", "bloqueada"])
-def test_una_cuenta_sin_verificar_o_bloqueada_no_ve_el_formulario(app, client, estado):
+def test_una_cuenta_sin_verificar_no_ve_el_formulario(app, client):
     """US-08-AC-01."""
-    entrar(client, crear_cuenta(app, 51, estado))
+    entrar(client, crear_cuenta(app, 51, "pendiente"))
     html = client.get(TEMA).get_data(as_text=True)
     assert 'name="cuerpo"' not in html and "Tu cuenta no puede responder" in html
+
+
+def test_una_cuenta_bloqueada_no_ve_el_formulario_y_se_cierra_su_sesion(app, client):
+    """US-08-AC-01 y US-10-AC-03."""
+    entrar(client, crear_cuenta(app, 51, "bloqueada"))
+    html = client.get(TEMA).get_data(as_text=True)
+    assert 'name="cuerpo"' not in html and "Tu cuenta está bloqueada. Se ha cerrado la sesión." in html
 
 
 # ---------- Publicar (AC-02 y AC-03) ----------
@@ -111,13 +117,21 @@ def test_con_la_sesion_caducada_tambien_va_a_iniciar_sesion(client):
     assert respuesta.status_code == 302 and "/login" in respuesta.headers["Location"]
 
 
-@pytest.mark.parametrize("estado, texto", [("pendiente", "pendiente de verificación"), ("bloqueada", "está bloqueada")])
-def test_una_cuenta_sin_verificar_o_bloqueada_no_puede_responder(app, client, estado, texto):
+def test_una_cuenta_sin_verificar_no_puede_responder(app, client):
     """US-08-AC-05."""
-    entrar(client, crear_cuenta(app, 55, estado))
+    entrar(client, crear_cuenta(app, 55, "pendiente"))
     respuesta = client.post(RESPONDER, data={"cuerpo": "Hola"})
     html = respuesta.get_data(as_text=True)
-    assert respuesta.status_code == 403 and texto in html and "No se ha guardado ninguna respuesta." in html
+    assert respuesta.status_code == 403 and "pendiente de verificación" in html
+    assert "No se ha guardado ninguna respuesta." in html
+    assert total_respuestas(app) == 1
+
+
+def test_una_cuenta_bloqueada_no_puede_responder(app, client):
+    """US-08-AC-05 y US-10-AC-03: la sesión se cierra y no se guarda nada."""
+    entrar(client, crear_cuenta(app, 55, "bloqueada"))
+    respuesta = client.post(RESPONDER, data={"cuerpo": "Hola"})
+    assert respuesta.status_code == 302 and "/login" in respuesta.headers["Location"]
     assert total_respuestas(app) == 1
 
 

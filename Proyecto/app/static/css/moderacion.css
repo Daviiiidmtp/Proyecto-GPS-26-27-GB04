@@ -1,0 +1,23 @@
+/* Estilos de la moderación del foro y del bloqueo de cuentas (US-10) */
+.tabla-cuentas { width: 100%; border-collapse: collapse; background: #fff; }
+.tabla-cuentas caption { text-align: left; font-weight: 600; margin-bottom: .5rem; }
+.tabla-cuentas th, .tabla-cuentas td { padding: .55rem .7rem; border-bottom: 1px solid #d9d2c3; text-align: left; vertical-align: middle; }
+.tabla-cuentas form { margin: 0; }
+.estado-activa { color: var(--exito); font-weight: 700; }
+.estado-bloqueada { color: var(--error); font-weight: 700; }
+.estado-activa::before { content: "● "; }
+.estado-bloqueada::before { content: "✕ "; }
+.boton-peligro, .tabla-cuentas .boton {
+  display: inline-block; padding: .4rem .9rem; border: 0; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.boton-peligro { background: var(--error); color: #fff; }
+.tabla-cuentas .boton { background: var(--verde); color: #fff; }
+.linea-moderar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.form-retirar { margin: 0; }
+.boton-retirar {
+  padding: .2rem .7rem; border: 1px solid var(--error); border-radius: 6px; background: #fff;
+  color: var(--error); font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+}
+@media (max-width: 600px) {
+  .tabla-cuentas td:nth-child(2), .tabla-cuentas th:nth-child(2) { display: none; }
+}

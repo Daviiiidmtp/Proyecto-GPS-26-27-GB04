@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Cuentas de cliente · El Hogar del Hobbit{% endblock %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/moderacion.css') }}">
+  <h1>Cuentas de cliente</h1>
+  <p class="nota">Una cuenta bloqueada no puede iniciar sesión ni participar. Al desbloquearla no se borran sus mensajes.</p>
+
+  {% if error %}
+    {# US-10-AC-06 #}
+    <p class="aviso aviso-error" role="alert">Error: no se han podido cargar las cuentas.</p>
+    <p><a class="boton" href="{{ url_for('moderacion.ver_cuentas') }}">Volver a intentarlo</a></p>
+  {% elif not cuentas %}
+    <p class="aviso aviso-info" role="status">Todavía no hay cuentas de cliente.</p>
+  {% else %}
+    <table class="tabla-cuentas">
+      <caption>{{ cuentas|length }} {{ 'cuenta' if cuentas|length == 1 else 'cuentas' }} de cliente</caption>
+      <thead>
+        <tr><th scope="col">Usuario</th><th scope="col">Email</th><th scope="col">Estado</th><th scope="col">Acción</th></tr>
+      </thead>
+      <tbody>
+        {% for c in cuentas %}
+          <tr>
+            <th scope="row">{{ c.nombre_usuario }}</th>
+            <td>{{ c.email }}</td>
+            {# El estado se indica con texto, no solo con color #}
+            <td class="estado-cuenta estado-{{ c.estado }}">{{ {'activa': 'Activa', 'bloqueada': 'Bloqueada', 'pendiente': 'Pendiente de verificar'}[c.estado] }}</td>
+            <td>
+              {% if c.estado == 'activa' %}
+                {# US-10-AC-02: bloquear pide confirmación #}
+                <form class="form-moderar" method="post" action="{{ url_for('moderacion.bloquear', id_usuario=c.id) }}"
+                      data-confirmar="¿Bloquear la cuenta de {{ c.nombre_usuario }}? No podrá iniciar sesión ni participar.">
+                  <button type="submit" class="boton-peligro" aria-label="Bloquear la cuenta de {{ c.nombre_usuario }}">Bloquear</button>
+                </form>
+              {% elif c.estado == 'bloqueada' %}
+                {# US-10-AC-04 #}
+                <form class="form-moderar" method="post" action="{{ url_for('moderacion.desbloquear', id_usuario=c.id) }}"
+                      data-confirmar="¿Desbloquear la cuenta de {{ c.nombre_usuario }}?">
+                  <button type="submit" class="boton" aria-label="Desbloquear la cuenta de {{ c.nombre_usuario }}">Desbloquear</button>
+                </form>
+              {% else %}
+                <span class="nota">Sin acciones</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  {% include "moderacion/confirmar.html" %}
+{% endblock %}
