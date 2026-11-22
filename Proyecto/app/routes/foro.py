@@ -1,4 +1,4 @@
-"""Pantallas del foro: lista pública de temas, ver un tema y crear un tema nuevo (US-07).
+"""Pantallas del foro: lista pública de temas, ver un tema, crear un tema nuevo (US-07) y responder (US-08).
 
 La lógica y las validaciones están en gestor_foro (GB04-99); aquí se muestran las páginas y los mensajes.
 """
@@ -21,24 +21,54 @@ def ver_foro():
     return render_template("foro/lista.html", temas=temas, error=False, puede_publicar=puede_publicar)
 
 
-@bp.route("/foro/temas/<int:id_tema>")
-def ver_tema(id_tema):
+def _pagina_tema(id_tema, texto="", errores=None, error_general=None, codigo=200):
+    """Muestra un tema con sus respuestas y el formulario para responder (US-08)."""
     try:
         tema = gestor_foro.getTema(id_tema)
+        puede_publicar = gestor_foro.puedePublicar(session.get("usuario_id"))
     except gestor_foro.ForoNoDisponible:
         return render_template("foro/tema.html", tema=None, error=True), 503
     if tema is None:
         abort(404)
-    return render_template("foro/tema.html", tema=tema, error=False)
+    return render_template("foro/tema.html", tema=tema, error=False, puede_publicar=puede_publicar,
+                           texto=texto, errores=errores or {}, error_general=error_general), codigo
 
 
-def _denegado(error):
-    """US-07-AC-05: se deniega la operación y no se guarda nada."""
+@bp.route("/foro/temas/<int:id_tema>")
+def ver_tema(id_tema):
+    """US-08-AC-01: el tema y sus respuestas son públicos."""
+    return _pagina_tema(id_tema)
+
+
+def _denegado(error, nada="No se ha guardado ningún tema."):
+    """US-07-AC-05 y US-08-AC-05: se deniega la operación y no se guarda nada."""
     if error.motivo == "sin_sesion":
         # Visitante o sesión caducada: se le indica cómo continuar
         flash(str(error), "info")
         return redirect(url_for("usuarios.login"))
-    return render_template("foro/denegado.html", mensaje=str(error)), 403
+    return render_template("foro/denegado.html", mensaje=str(error), nada=nada), 403
+
+
+@bp.route("/foro/temas/<int:id_tema>/responder", methods=["POST"])
+def responder(id_tema):
+    texto = request.form.get("cuerpo", "")
+    try:
+        id_respuesta = gestor_foro.anadirComentario(session.get("usuario_id"), id_tema, texto)
+    except gestor_foro.PublicacionDenegada as error:
+        return _denegado(error, "No se ha guardado ninguna respuesta.")
+    except gestor_foro.TemaNoEncontrado as error:
+        # US-08-AC-04: el tema no existe y no se guarda la respuesta
+        return render_template("foro/tema.html", tema=None, error=False, no_disponible=str(error)), 404
+    except gestor_foro.RespuestaInvalida as error:
+        # US-08-AC-02: se indica el error y no se publica
+        return _pagina_tema(id_tema, texto, error.errores, codigo=400)
+    except gestor_foro.ForoNoDisponible:
+        # US-08-AC-05: se informa, se conserva el texto y se puede reintentar sin duplicar
+        return _pagina_tema(id_tema, texto, error_general="No se ha podido publicar la respuesta. Vuelve a intentarlo.",
+                            codigo=503)
+    # US-08-AC-03: la respuesta aparece al final del tema
+    flash("Respuesta publicada.", "exito")
+    return redirect(url_for("foro.ver_tema", id_tema=id_tema) + f"#respuesta-{id_respuesta}")
 
 
 @bp.route("/foro/nuevo", methods=["GET", "POST"])

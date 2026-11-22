@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block titulo %}Confirmar compra · El Hogar del Hobbit{% endblock %}
+{% macro euros(valor) %}{{ '%.2f'|format(valor)|replace('.', ',') }} €{% endmacro %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cesta.css') }}">
+  <h1>Confirmar la compra simulada</h1>
+  <p class="aviso aviso-info" role="note">Es una simulación: no se cobra nada, no se conecta con ningún banco y no se piden datos de pago reales.</p>
+
+  {# US-17-AC-02: resumen con artículos, cantidades, precios y total antes de confirmar #}
+  <table class="tabla-cesta">
+    <caption>Resumen del pedido: {{ datos.unidades }} {{ 'unidad' if datos.unidades == 1 else 'unidades' }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Producto</th>
+        <th scope="col">Precio unidad</th>
+        <th scope="col">Cantidad</th>
+        <th scope="col">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in datos.lineas %}
+        <tr>
+          <th scope="row">{{ l.nombre }}</th>
+          <td>{{ euros(l.precio) }}</td>
+          <td>{{ l.cantidad }}</td>
+          <td>{{ euros(l.subtotal) }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><th scope="row" colspan="3">Total ficticio</th><td><strong>{{ euros(datos.total) }}</strong></td></tr>
+    </tfoot>
+  </table>
+
+  {# US-17-AC-01: solo métodos de demostración, sin pedir datos financieros #}
+  <form class="form-checkout" method="post" action="/cesta/confirmar">
+    <input type="hidden" name="codigo" value="{{ codigo }}">
+    <fieldset class="metodos-pago">
+      <legend>Método de pago de demostración</legend>
+      {% for clave, texto in metodos.items() %}
+        <label class="metodo-pago">
+          <input type="radio" name="metodo_pago" value="{{ clave }}" required {% if loop.first %}checked{% endif %}>
+          {{ texto }}
+        </label>
+      {% endfor %}
+    </fieldset>
+    <button type="submit" class="boton-confirmar">Confirmar compra simulada</button>
+  </form>
+  <p><a href="{{ url_for('cesta.ver_cesta') }}">Volver a la cesta para cambiar algo</a></p>
+
+  <script>
+    var formulario = document.querySelector(".form-checkout");
+    var boton = formulario.querySelector("button");
+    var texto = boton.textContent;
+    // Mensaje de carga: el botón se desactiva al enviar para no confirmar dos veces
+    formulario.addEventListener("submit", function () {
+      boton.disabled = true;
+      boton.textContent = "Procesando la compra simulada…";
+    });
+    // Al volver con el botón «Atrás» del navegador, la página sale de la memoria del navegador
+    // con el botón desactivado. Se vuelve a activar para poder confirmar otra vez (US-17-AC-07)
+    window.addEventListener("pageshow", function () {
+      boton.disabled = false;
+      boton.textContent = texto;
+    });
+  </script>
+{% endblock %}

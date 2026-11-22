@@ -134,13 +134,25 @@ def test_con_la_sesion_caducada_tambien_va_a_iniciar_sesion(app, client):
     assert respuesta.status_code == 302 and "/login" in respuesta.headers["Location"]
 
 
-@pytest.mark.parametrize("estado, texto", [("pendiente", "pendiente de verificación"), ("bloqueada", "está bloqueada")])
-def test_una_cuenta_sin_verificar_o_bloqueada_no_puede_publicar(app, client, estado, texto):
+def test_una_cuenta_sin_verificar_no_puede_publicar(app, client):
     """US-07-AC-05."""
-    entrar(client, crear_cuenta(app, 55, estado))
+    entrar(client, crear_cuenta(app, 55, "pendiente"))
     antes = total_temas(app)
     for respuesta in (client.get(NUEVO), client.post(NUEVO, data=VALIDO)):
-        assert respuesta.status_code == 403 and texto in respuesta.get_data(as_text=True)
+        assert respuesta.status_code == 403 and "pendiente de verificación" in respuesta.get_data(as_text=True)
+    assert total_temas(app) == antes
+
+
+def test_una_cuenta_bloqueada_no_puede_publicar(app, client):
+    """US-07-AC-05 y US-10-AC-03: la sesión de una cuenta bloqueada se cierra y no se guarda nada."""
+    bloqueada = crear_cuenta(app, 55, "bloqueada")
+    antes = total_temas(app)
+    entrar(client, bloqueada)
+    respuesta = client.get(NUEVO)
+    assert respuesta.status_code == 302 and "/login" in respuesta.headers["Location"]
+    entrar(client, bloqueada)
+    respuesta = client.post(NUEVO, data=VALIDO)
+    assert respuesta.status_code == 302 and "/login" in respuesta.headers["Location"]
     assert total_temas(app) == antes
 
 

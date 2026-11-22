@@ -1,0 +1,20 @@
+<script>
+  // US-10-AC-01 y AC-02: las acciones de moderación piden confirmación antes de enviarse.
+  // Tras confirmar, el botón se desactiva para no enviar dos veces.
+  document.querySelectorAll(".form-moderar").forEach(function (form) {
+    var boton = form.querySelector("button");
+    var texto = boton.textContent;
+    form.addEventListener("submit", function (evento) {
+      if (!window.confirm(form.dataset.confirmar)) {
+        evento.preventDefault();
+        return;
+      }
+      boton.disabled = true;
+      boton.textContent = "Guardando…";
+    });
+    window.addEventListener("pageshow", function () {
+      boton.disabled = false;
+      boton.textContent = texto;
+    });
+  });
+</script>

@@ -74,9 +74,10 @@ def quitar(id_producto):
 
 @bp.route("/cesta/checkout")
 def checkout():
-    """US-16-AC-03 y AC-04: no se deja empezar el checkout con la cesta vacía o con artículos que no se pueden comprar.
+    """Resumen de la compra simulada y elección del método de pago (US-17-AC-01 y AC-02).
 
-    La compra simulada en sí llega con US-17.
+    US-16-AC-03 y AC-04: con la cesta vacía o con artículos que no se pueden comprar,
+    se vuelve a la cesta para corregirla. El formulario se confirma en /cesta/confirmar (GB04-110).
     """
     try:
         datos = gestor_catalogo.getCesta(_cesta())
@@ -85,8 +86,11 @@ def checkout():
         return redirect(url_for("cesta.ver_cesta"))
     if datos["vacia"]:
         flash("Tu cesta está vacía. Añade algún producto antes de tramitar el pedido.", "error")
-    elif not datos["se_puede_comprar"]:
+        return redirect(url_for("cesta.ver_cesta"))
+    if not datos["se_puede_comprar"]:
         flash("Hay artículos que no se pueden comprar. Corrige la cesta antes de tramitar el pedido.", "error")
-    else:
-        flash("La compra simulada estará disponible en la próxima versión.", "info")
-    return redirect(url_for("cesta.ver_cesta"))
+        return redirect(url_for("cesta.ver_cesta"))
+    # Cada vez que se abre el resumen hay un código nuevo. Si se confirma dos veces
+    # con el mismo código, se devuelve el mismo pedido (US-17-AC-07).
+    return render_template("cesta/checkout.html", datos=datos, metodos=gestor_catalogo.METODOS_PAGO,
+                           codigo=gestor_catalogo.nuevoCodigoCompra())

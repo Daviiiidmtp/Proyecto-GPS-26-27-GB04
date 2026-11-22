@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block titulo %}Contacto · El Hogar del Hobbit{% endblock %}
+{% macro campo_error(nombre) %}
+  {% if errores[nombre] %}<p class="campo-error" id="error-{{ nombre }}">{{ errores[nombre] }}</p>{% endif %}
+{% endmacro %}
+{% macro invalido(nombre) %}{% if errores[nombre] %}aria-invalid="true" aria-describedby="error-{{ nombre }}"{% endif %}{% endmacro %}
+{% block contenido %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/contacto.css') }}">
+  <h1>Contacto</h1>
+  <p>¿Tienes una incidencia o una duda? Escríbenos y la tienda hará el seguimiento.
+     Antes puedes mirar las <a href="{{ url_for('faqs.ver_faqs') }}">preguntas frecuentes</a>.</p>
+  {# US-14-AC-06: no se envían correos ni se aceptan datos personales reales #}
+  <p class="aviso aviso-info" role="note">Es una demostración: no se envía ningún correo. No escribas datos personales reales
+     y usa un email de prueba que termine en .test, por ejemplo frodo@comarca.test.</p>
+
+  {% if error_general %}
+    {# US-14-AC-05 #}
+    <p class="aviso aviso-error" role="alert">Error: {{ error_general }}</p>
+  {% endif %}
+  {% if errores %}
+    {# US-14-AC-03: se indica qué corregir #}
+    <div class="aviso aviso-error" role="alert">
+      <p><strong>No se ha enviado el mensaje. Corrige estos campos:</strong></p>
+      <ul>{% for campo, mensaje in errores.items() %}<li><a href="#{{ campo }}">{{ mensaje }}</a></li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  {# US-14-AC-02: los cuatro campos son obligatorios #}
+  <form class="formulario form-contacto" method="post" action="{{ url_for('contacto.contacto') }}" novalidate>
+    <input type="hidden" name="codigo" value="{{ codigo }}">
+    <label for="nombre">Nombre <span class="ayuda">(obligatorio)</span></label>
+    <input id="nombre" name="nombre" value="{{ datos.nombre or '' }}" maxlength="80" required autocomplete="off" {{ invalido('nombre') }}>
+    {{ campo_error('nombre') }}
+
+    <label for="email">Email de prueba <span class="ayuda">(obligatorio, termina en .test)</span></label>
+    <input id="email" name="email" type="email" value="{{ datos.email or '' }}" maxlength="120" required autocomplete="off" {{ invalido('email') }}>
+    {{ campo_error('email') }}
+
+    <label for="asunto">Asunto <span class="ayuda">(obligatorio)</span></label>
+    <input id="asunto" name="asunto" value="{{ datos.asunto or '' }}" maxlength="120" required {{ invalido('asunto') }}>
+    {{ campo_error('asunto') }}
+
+    <label for="mensaje">Mensaje <span class="ayuda">(obligatorio)</span></label>
+    <textarea id="mensaje" name="mensaje" rows="6" maxlength="2000" required {{ invalido('mensaje') }}>{{ datos.mensaje or '' }}</textarea>
+    {{ campo_error('mensaje') }}
+
+    <button type="submit">Enviar mensaje</button>
+  </form>
+
+  <script>
+    var formulario = document.querySelector(".form-contacto");
+    var boton = formulario.querySelector("button");
+    var texto = boton.textContent;
+    // Mensaje de carga: el botón se desactiva al enviar para no enviar dos veces
+    formulario.addEventListener("submit", function () {
+      boton.disabled = true;
+      boton.textContent = "Enviando…";
+    });
+    // Al volver con el botón «Atrás» del navegador, el botón se vuelve a activar
+    window.addEventListener("pageshow", function () {
+      boton.disabled = false;
+      boton.textContent = texto;
+    });
+  </script>
+{% endblock %}

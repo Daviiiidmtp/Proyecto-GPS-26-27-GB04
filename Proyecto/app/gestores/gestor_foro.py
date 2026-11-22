@@ -24,6 +24,18 @@ class TemaInvalido(Exception):
         self.errores = errores
 
 
+class RespuestaInvalida(Exception):
+    """El texto de la respuesta no es válido. `errores` indica el campo y el motivo (US-08-AC-02)."""
+
+    def __init__(self, errores):
+        super().__init__("; ".join(errores.values()))
+        self.errores = errores
+
+
+class TemaNoEncontrado(Exception):
+    """El tema no existe o ya no está disponible. No se guarda la respuesta (US-08-AC-04)."""
+
+
 class PublicacionDenegada(Exception):
     """La cuenta no puede publicar. `motivo` es un código para la interfaz y el mensaje explica qué hacer.
 
@@ -60,16 +72,32 @@ def getTemas():
     return [_a_tema(fila) for fila in filas]
 
 
-def getTema(idTema):
-    """Un tema por su id, o None si no existe. -> dict. US-07 y US-08
+def _a_respuesta(fila):
+    momento = datetime.strptime(fila["fecha_hora"], FORMATO)
+    return {
+        "id": fila["id"],
+        "cuerpo": fila["cuerpo"],
+        "autor": fila["autor"],
+        "fecha": momento.strftime("%d/%m/%Y"),
+        "hora": momento.strftime("%H:%M"),
+    }
 
-    Las respuestas del tema se añadirán con US-08.
+
+def getTema(idTema):
+    """Un tema por su id con sus respuestas, o None si no existe. -> dict. US-07 y US-08
+
+    `respuestas` va de la más antigua a la más reciente, cada una con autor, fecha y hora.
+    Se lee sin sesión: las respuestas son públicas (US-08-AC-01).
     """
     try:
         fila = foro_repo.obtener_tema(idTema)
+        if fila is None:
+            return None
+        tema = _a_tema(fila)
+        tema["respuestas"] = [_a_respuesta(r) for r in foro_repo.listar_respuestas(idTema)]
     except sqlite3.Error as error:
         raise ForoNoDisponible("No se ha podido cargar el tema") from error
-    return _a_tema(fila) if fila else None
+    return tema
 
 
 def puedePublicar(idUsuario):
@@ -142,11 +170,106 @@ def crearTema(titulo, cuerpo, idUsuario, ahora=None):
         raise ForoNoDisponible("No se ha podido publicar el tema") from error
 
 
-def anadirComentario(idUsuario, idTema, comentario):
-    """Responde en un tema. -> bool. US-08"""
-    raise NotImplementedError("Pendiente: US-08 Responder en foro")
+def anadirComentario(idUsuario, idTema, comentario, ahora=None):
+    """Publica una respuesta al final de un tema y devuelve su id. -> int. US-08
+
+    En el diagrama devuelve bool; aquí devuelve el id para poder enlazar la respuesta.
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    Lanza PublicacionDenegada si la cuenta no puede responder: visitante, sesión caducada,
+    cuenta sin verificar o bloqueada (US-08-AC-01 y AC-05),
+    TemaNoEncontrado si el tema no existe (US-08-AC-04),
+    RespuestaInvalida si el texto está vacío o es demasiado largo (US-08-AC-02)
+    y ForoNoDisponible si falla el guardado (US-08-AC-05). En todos los casos no se guarda nada.
+    Si el mismo autor ya ha publicado la misma respuesta en ese tema hace un momento,
+    devuelve ese id y no guarda un duplicado (US-08-AC-05).
+    """
+    ahora = ahora or datetime.now()
+    _comprobar_cuenta(idUsuario)
+    try:
+        if foro_repo.obtener_tema(idTema) is None:
+            raise TemaNoEncontrado("Este tema ya no está disponible. No se ha guardado tu respuesta.")
+    except sqlite3.Error as error:
+        raise ForoNoDisponible("No se ha podido comprobar el tema") from error
+    cuerpo = (comentario or "").strip()
+    if not cuerpo:
+        raise RespuestaInvalida({"cuerpo": "Escribe el texto de la respuesta."})
+    if len(cuerpo) > LONGITUD_MAXIMA_CUERPO:
+        raise RespuestaInvalida({"cuerpo": f"La respuesta no puede tener más de {LONGITUD_MAXIMA_CUERPO} caracteres."})
+    try:
+        repetida = foro_repo.buscar_respuesta_igual_reciente(
+            idTema, idUsuario, cuerpo, (ahora - MARGEN_DUPLICADO).strftime(FORMATO))
+        if repetida is not None:
+            return repetida
+        return foro_repo.crear_respuesta(idTema, cuerpo, idUsuario, ahora.strftime(FORMATO))
+    except sqlite3.Error as error:
+        raise ForoNoDisponible("No se ha podido publicar la respuesta") from error
 
 
-def eliminarMensaje(idMensaje):
-    """@Admin @Moderador. Retira un mensaje. -> bool. US-10"""
-    raise NotImplementedError("Pendiente: US-10 Moderar foro y bloquear cuentas")
+# ---------- @Admin @Moderador (US-10) ----------
+
+TIPOS_MENSAJE = ("tema", "respuesta")
+ROLES_MODERACION = ("moderador", "admin")
+
+
+class ModeracionDenegada(Exception):
+    """La cuenta no puede moderar. `motivo` es sin_sesion o sin_permiso (US-10-AC-05 y AC-06)."""
+
+    def __init__(self, motivo, mensaje):
+        super().__init__(mensaje)
+        self.motivo = motivo
+
+
+class MensajeNoEncontrado(Exception):
+    """El tema o la respuesta no existe. No se cambia nada."""
+
+
+def _comprobar_moderador(idUsuario):
+    """US-10-AC-05 y AC-06: sesión iniciada, cuenta activa y rol Moderador o Administrador.
+
+    Se comprueba al guardar, no solo al mostrar el botón.
+    """
+    try:
+        usuario = usuarios_repo.obtener_por_id(idUsuario) if idUsuario is not None else None
+    except sqlite3.Error as error:
+        raise ForoNoDisponible("No se ha podido comprobar la cuenta") from error
+    if usuario is None:
+        raise ModeracionDenegada("sin_sesion", "Tu sesión ha caducado. Inicia sesión para moderar el foro.")
+    if usuario["estado"] != "activa" or usuario["rol"] not in ROLES_MODERACION:
+        raise ModeracionDenegada("sin_permiso", "Solo un moderador o un administrador puede retirar mensajes.")
+
+
+def puedeModerar(idUsuario):
+    """True si la cuenta puede retirar mensajes. -> bool. US-10
+
+    La interfaz lo usa para mostrar u ocultar los botones «Retirar» (US-10-AC-05).
+    """
+    try:
+        _comprobar_moderador(idUsuario)
+    except (ModeracionDenegada, ForoNoDisponible):
+        return False
+    return True
+
+
+def eliminarMensaje(idMensaje, idUsuario, tipo="respuesta", ahora=None):
+    """@Admin @Moderador. Retira un tema o una respuesta del foro. -> bool. US-10
+
+    En el diagrama es eliminarMensaje(idMensaje); aquí también recibe el usuario de la sesión,
+    porque el permiso se comprueba al guardar, y el tipo de mensaje: 'tema' o 'respuesta'.
+    El mensaje no se borra de la base de datos: queda apuntado como retirado y deja de verse
+    para todos (US-10-AC-01). Si se retira un tema, tampoco se ven sus respuestas.
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    Devuelve True si se ha retirado ahora y False si ya estaba retirado (US-10-AC-07).
+    Lanza ModeracionDenegada si la cuenta no puede moderar (US-10-AC-05 y AC-06),
+    MensajeNoEncontrado si el mensaje no existe y ForoNoDisponible si falla el guardado (US-10-AC-06).
+    En todos estos casos no se cambia nada.
+    """
+    ahora = ahora or datetime.now()
+    if tipo not in TIPOS_MENSAJE:
+        raise MensajeNoEncontrado("El tipo de mensaje no existe.")
+    _comprobar_moderador(idUsuario)
+    try:
+        if not foro_repo.existe_mensaje(tipo, idMensaje):
+            raise MensajeNoEncontrado("El mensaje no existe.")
+        return foro_repo.retirar(tipo, idMensaje, idUsuario, ahora.strftime(FORMATO))
+    except sqlite3.Error as error:
+        raise ForoNoDisponible("No se ha podido retirar el mensaje") from error

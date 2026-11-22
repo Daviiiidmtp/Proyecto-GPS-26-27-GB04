@@ -127,12 +127,103 @@ def getRolUsuario(idUsuario):
 
 
 def cambiarRol(idUsuario, rol):
-    """Cambia el rol de un usuario (cliente, moderador, admin). -> bool. US-10"""
-    raise NotImplementedError("Pendiente: US-10 Moderar foro y bloquear cuentas")
+    """Cambia el rol de un usuario (cliente, moderador, admin). -> bool
+
+    Fuera del alcance de la baseline: las cuentas de Moderador y Administrador se crean
+    fuera del registro público (EP-04) y US-10 no pide cambiar roles.
+    """
+    raise NotImplementedError("Fuera del alcance: los roles de Moderador y Administrador vienen preconfigurados")
 
 
-# ---------- @Admin @Moderador ----------
+# ---------- @Admin (US-10) ----------
 
-def banearUsuario(idUsuario):
-    """@Admin @Moderador. Bloquea una cuenta. -> bool. US-10"""
-    raise NotImplementedError("Pendiente: US-10 Moderar foro y bloquear cuentas")
+class PermisoDenegado(Exception):
+    """Solo un administrador puede bloquear y desbloquear cuentas. `motivo` es sin_sesion o no_admin (US-10-AC-05 y AC-06)."""
+
+    def __init__(self, motivo, mensaje):
+        super().__init__(mensaje)
+        self.motivo = motivo
+
+
+class CuentaNoValida(Exception):
+    """La cuenta no existe o no es una cuenta Cliente que se pueda bloquear o desbloquear. No se cambia nada."""
+
+
+def _comprobar_admin(idAdmin):
+    """US-10-AC-05 y AC-06: sesión iniciada, cuenta activa y rol Administrador. Se comprueba al guardar."""
+    try:
+        admin = usuarios_repo.obtener_por_id(idAdmin) if idAdmin is not None else None
+    except sqlite3.Error as error:
+        raise UsuariosNoDisponibles("No se ha podido comprobar la cuenta") from error
+    if admin is None:
+        raise PermisoDenegado("sin_sesion", "Tu sesión ha caducado. Inicia sesión como administrador.")
+    if admin["rol"] != "admin" or admin["estado"] != "activa":
+        raise PermisoDenegado("no_admin", "Solo un administrador puede bloquear o desbloquear cuentas.")
+
+
+def getClientes(idAdmin):
+    """@Admin. Cuentas Cliente con id, email, nombre_usuario y estado. -> list. US-10
+
+    La interfaz las muestra con el botón «Bloquear» o «Desbloquear» según su estado.
+    """
+    _comprobar_admin(idAdmin)
+    try:
+        return [dict(fila) for fila in usuarios_repo.listar_clientes()]
+    except sqlite3.Error as error:
+        raise UsuariosNoDisponibles("No se han podido cargar las cuentas") from error
+
+
+def _cambiar_estado(idUsuario, idAdmin, desde, hasta, accion):
+    _comprobar_admin(idAdmin)
+    try:
+        cuenta = usuarios_repo.obtener_por_id(idUsuario)
+        if cuenta is None or cuenta["rol"] != "cliente":
+            raise CuentaNoValida(f"Solo se pueden {accion} cuentas de cliente.")
+        if usuarios_repo.cambiar_estado_cliente(idUsuario, desde, hasta):
+            return True
+        # No ha cambiado: se vuelve a leer para informar del estado actual (US-10-AC-07)
+        actual = usuarios_repo.obtener_por_id(idUsuario)["estado"]
+    except sqlite3.Error as error:
+        raise UsuariosNoDisponibles(f"No se ha podido {accion} la cuenta") from error
+    if actual == hasta:
+        return False
+    raise CuentaNoValida("La cuenta está pendiente de verificación y no se puede " + accion + ".")
+
+
+def banearUsuario(idUsuario, idAdmin):
+    """@Admin. Bloquea una cuenta Cliente activa. -> bool. US-10
+
+    En el diagrama es banearUsuario(idUsuario); aquí también recibe el administrador de la sesión,
+    porque el permiso se comprueba al guardar. Un Moderador no puede bloquear (US-10-AC-05).
+    La cuenta bloqueada no puede iniciar sesión ni participar (US-10-AC-02) y sus sesiones
+    abiertas se cierran en la siguiente petición (US-10-AC-03, ver routes/sesion.py).
+    Devuelve True si se ha bloqueado ahora y False si ya estaba bloqueada (US-10-AC-07).
+    Lanza PermisoDenegado, CuentaNoValida o UsuariosNoDisponibles. En esos casos no se cambia nada.
+    """
+    return _cambiar_estado(idUsuario, idAdmin, "activa", "bloqueada", "bloquear")
+
+
+def desbanearUsuario(idUsuario, idAdmin):
+    """@Admin. Devuelve una cuenta Cliente bloqueada al estado activo. -> bool. US-10-AC-04
+
+    No borra sus mensajes ni inicia una sesión: el cliente tiene que volver a entrar.
+    Devuelve True si se ha desbloqueado ahora y False si ya estaba activa.
+    Lanza PermisoDenegado, CuentaNoValida o UsuariosNoDisponibles. En esos casos no se cambia nada.
+    """
+    return _cambiar_estado(idUsuario, idAdmin, "bloqueada", "activa", "desbloquear")
+
+
+def cuentaBloqueada(idUsuario):
+    """True si la cuenta de la sesión está bloqueada. -> bool. US-10-AC-03
+
+    Lo usa routes/sesion.py en cada petición para cerrar la sesión de una cuenta bloqueada.
+    Si no se puede leer la base de datos devuelve False: las operaciones protegidas
+    vuelven a comprobar la cuenta al guardar.
+    """
+    if idUsuario is None:
+        return False
+    try:
+        fila = usuarios_repo.obtener_por_id(idUsuario)
+    except sqlite3.Error:
+        return False
+    return fila is not None and fila["estado"] == "bloqueada"

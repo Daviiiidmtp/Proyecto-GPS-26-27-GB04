@@ -22,11 +22,13 @@
           ('/faqs', 'FAQs')
         ] %}
         {% if session.get('rol') == 'admin' %}
-          {# US-12 y US-13: solo el administrador ve el alta de productos y el stock #}
-          {% set menu = menu + [('/admin/productos/nuevo', 'Añadir producto'), ('/admin/productos/stock', 'Modificar stock')] %}
+          {# US-12, US-13, US-06 y US-10: solo el administrador ve el alta de productos, el stock, el alta de eventos y las cuentas #}
+          {% set menu = menu + [('/admin/productos/nuevo', 'Añadir producto'), ('/admin/productos/stock', 'Modificar stock'), ('/admin/eventos/nuevo', 'Añadir evento'), ('/admin/usuarios', 'Cuentas')] %}
         {% endif %}
         {% if session.get('usuario_id') %}
-          {% set menu = menu + [('/logout', 'Cerrar sesión')] %}
+          {# US-11-AC-02: campana con las notificaciones sin leer, solo con sesión iniciada #}
+          {% set campana = '🔔 Notificaciones' ~ (' (' ~ notificaciones_sin_leer ~ ')' if notificaciones_sin_leer is not none else '') %}
+          {% set menu = menu + [('/notificaciones', campana), ('/logout', 'Cerrar sesión')] %}
         {% else %}
           {% set menu = menu + [('/registro', 'Registro'), ('/login', 'Iniciar sesión')] %}
         {% endif %}
@@ -53,6 +55,8 @@
   </main>
 
   <footer class="pie">
+    {# US-14-AC-01: la página de contacto se abre desde el pie de página #}
+    <p><a href="/contacto" {% if request.path == '/contacto' %}aria-current="page"{% endif %}>Contacto</a></p>
     <p>Proyecto académico GPS · Grupo GB04 · Todos los datos son ficticios.</p>
   </footer>
 </body>

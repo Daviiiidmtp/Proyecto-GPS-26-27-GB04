@@ -50,3 +50,28 @@ def obtener_por_id(id_usuario):
     return get_db().execute(
         "SELECT id, email, nombre_usuario, rol, estado FROM usuarios WHERE id = ?", (id_usuario,)
     ).fetchone()
+
+
+# ---------- Bloqueo de cuentas (US-10) ----------
+
+def listar_clientes():
+    """Cuentas Cliente con su estado, ordenadas por nombre de usuario."""
+    return get_db().execute(
+        "SELECT id, email, nombre_usuario, rol, estado FROM usuarios WHERE rol = 'cliente' "
+        "ORDER BY nombre_usuario COLLATE NOCASE, id"
+    ).fetchall()
+
+
+def cambiar_estado_cliente(id_usuario, desde, hasta):
+    """Pasa una cuenta Cliente del estado `desde` al estado `hasta` en una sola operación.
+
+    Devuelve True si ha cambiado y False si la cuenta no estaba en `desde` o no es Cliente.
+    Así, si dos administradores pulsan a la vez, solo cuenta el primero (US-10-AC-07).
+    """
+    db = get_db()
+    with db:
+        cursor = db.execute(
+            "UPDATE usuarios SET estado = ? WHERE id = ? AND rol = 'cliente' AND estado = ?",
+            (hasta, id_usuario, desde),
+        )
+    return cursor.rowcount == 1

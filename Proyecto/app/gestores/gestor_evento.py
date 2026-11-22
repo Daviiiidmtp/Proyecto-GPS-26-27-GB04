@@ -2,6 +2,7 @@
 import sqlite3
 from datetime import datetime
 
+from app.gestores import gestor_usuario
 from app.repositories import eventos_repo, usuarios_repo
 
 FORMATO = "%Y-%m-%d %H:%M"
@@ -108,8 +109,129 @@ def getEventosInscritos(idUsuario):
         raise EventosNoDisponibles("No se han podido cargar tus inscripciones") from error
 
 
+def getEvento(idEvento, ahora=None):
+    """Ficha de un evento publicado, o None si no existe. -> dict. US-11
+
+    A la ficha se llega desde una notificación (US-11-AC-03). Sigue disponible aunque el evento
+    esté completo o ya se haya celebrado, y lo indica en `estado` (US-11-AC-05).
+    `admite_inscripcion` es False si no quedan plazas o el evento ya pasó: entonces la interfaz
+    no muestra el botón «Inscribirse».
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    Lanza EventosNoDisponibles si no se puede leer la base de datos.
+    """
+    ahora = ahora or datetime.now()
+    try:
+        fila = eventos_repo.obtener(idEvento)
+    except sqlite3.Error as error:
+        raise EventosNoDisponibles("No se ha podido cargar el evento") from error
+    if fila is None:
+        return None
+    evento = _a_evento(fila)
+    evento["pasado"] = datetime.strptime(fila["fecha_hora"], FORMATO) < ahora
+    if evento["pasado"]:
+        evento["estado"] = "Ya celebrado"
+    evento["admite_inscripcion"] = not evento["pasado"] and not evento["completo"]
+    return evento
+
+
 # ---------- @Admin ----------
 
-def crearEvento(evento):
-    """@Admin. Publica un evento nuevo. -> bool. US-06"""
-    raise NotImplementedError("Pendiente: US-06 Añadir evento")
+TIPOS = {"torneo": "Torneo", "actividad": "Actividad"}
+LONGITUD_MAXIMA_TITULO = 120
+CAPACIDAD_MAXIMA = 1000
+
+
+class EventoInvalido(Exception):
+    """Los datos del evento no son válidos. `errores` indica el campo y el motivo (US-06-AC-03)."""
+
+    def __init__(self, errores):
+        super().__init__("; ".join(errores.values()))
+        self.errores = errores
+
+
+class PermisoDenegado(Exception):
+    """Solo un administrador puede crear eventos (US-06-AC-04). `motivo` es sin_sesion o no_admin."""
+
+    def __init__(self, motivo, mensaje):
+        super().__init__(mensaje)
+        self.motivo = motivo
+
+
+def _validar_evento(evento, ahora):
+    """US-06-AC-01 y AC-03: comprueba cada campo y devuelve (errores, datos limpios)."""
+    errores = {}
+    titulo = (evento.get("titulo") or "").strip()
+    tipo = (evento.get("tipo") or "").strip()
+    fecha = (evento.get("fecha") or "").strip()
+    hora = (evento.get("hora") or "").strip()
+    capacidad = str(evento.get("capacidad") or "").strip()
+
+    if not titulo:
+        errores["titulo"] = "Escribe el título del evento."
+    elif len(titulo) > LONGITUD_MAXIMA_TITULO:
+        errores["titulo"] = f"El título no puede tener más de {LONGITUD_MAXIMA_TITULO} caracteres."
+
+    if not tipo:
+        errores["tipo"] = "Elige si es un torneo o una actividad."
+    elif tipo not in TIPOS:
+        errores["tipo"] = "El tipo de evento no existe."
+
+    momento = None
+    if not fecha:
+        errores["fecha"] = "Escribe la fecha del evento."
+    if not hora:
+        errores["hora"] = "Escribe la hora del evento."
+    if fecha and hora:
+        try:
+            momento = datetime.strptime(f"{fecha} {hora}", FORMATO)
+        except ValueError:
+            errores["fecha"] = "La fecha o la hora no son válidas. Usa el formato día/mes/año y horas:minutos."
+        else:
+            if momento <= ahora:
+                errores["fecha"] = "La fecha y la hora del evento deben ser futuras."
+
+    if not capacidad:
+        errores["capacidad"] = "Escribe la capacidad del evento."
+    elif not capacidad.isdigit() or int(capacidad) < 1:
+        errores["capacidad"] = "La capacidad debe ser un número entero mayor que 0."
+    elif int(capacidad) > CAPACIDAD_MAXIMA:
+        errores["capacidad"] = f"La capacidad no puede ser mayor que {CAPACIDAD_MAXIMA} plazas."
+
+    datos = {
+        "titulo": titulo,
+        "tipo": tipo,
+        "fecha_hora": momento.strftime(FORMATO) if momento else None,
+        "capacidad": int(capacidad) if "capacidad" not in errores else None,
+    }
+    return errores, datos
+
+
+def crearEvento(evento, idUsuario, ahora=None):
+    """@Admin. Publica un evento nuevo con todas sus plazas libres y devuelve su id. -> int. US-06
+
+    En el diagrama es crearEvento(evento) y devuelve bool; aquí también recibe el usuario de
+    la sesión, porque la autorización se comprueba al guardar y no solo al mostrar el formulario,
+    y devuelve el id para poder enlazar el evento.
+    `evento` es un diccionario con titulo, tipo (torneo o actividad), fecha (AAAA-MM-DD),
+    hora (HH:MM) y capacidad, tal y como llegan del formulario.
+    `ahora` permite fijar la hora en las pruebas; por defecto, la hora local de la tienda.
+    Lanza PermisoDenegado si no hay sesión o la cuenta no es de administrador (US-06-AC-04),
+    EventoInvalido con el campo y el motivo de cada error (US-06-AC-03)
+    y EventosNoDisponibles si falla el guardado (US-06-AC-05). En los tres casos no se guarda nada.
+    Al publicarlo, cada cuenta Cliente activa recibe una notificación no leída (US-11-AC-01).
+    """
+    ahora = ahora or datetime.now()
+    try:
+        rol = gestor_usuario.getRolUsuario(idUsuario) if idUsuario is not None else None
+        if rol is None:
+            raise PermisoDenegado("sin_sesion", "Necesitas una sesión de administrador para crear eventos.")
+        if rol != "admin":
+            raise PermisoDenegado("no_admin", "Solo un administrador puede crear eventos.")
+        errores, datos = _validar_evento(evento, ahora)
+        if errores:
+            raise EventoInvalido(errores)
+        # US-11-AC-01: el evento y las notificaciones a los clientes se guardan juntos
+        return eventos_repo.crear(datos["titulo"], datos["tipo"], datos["fecha_hora"], datos["capacidad"],
+                                  ahora.strftime(FORMATO))
+    except sqlite3.Error as error:
+        raise EventosNoDisponibles("No se ha podido guardar el evento") from error
