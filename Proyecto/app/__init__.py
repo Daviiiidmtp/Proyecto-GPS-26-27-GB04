@@ -13,9 +13,11 @@ import pkgutil
 from pathlib import Path
 
 from flask import Flask, render_template
+from flask_wtf.csrf import CSRFProtect
 
 from app import db
 
+csrf = CSRFProtect()
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -31,6 +33,7 @@ def create_app(test_config=None):
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 
+    csrf.init_app(app)
     db.init_app(app)
     _registrar_rutas(app)
     _registrar_errores(app)
